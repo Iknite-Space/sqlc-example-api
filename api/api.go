@@ -28,6 +28,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
 	r.GET("/thread/:id/messages", h.handleGetThreadMessages)
+	r.DELETE("/message/:id", h.handleDeleteMessage)
 
 	return r
 }
@@ -83,4 +84,19 @@ func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
 		"topic":    "example",
 		"messages": messages,
 	})
+}
+
+func (h *MessageHandler) handleDeleteMessage(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+		return
+	}
+
+	if err := h.querier.DeleteMessage(c, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete message"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
+
 }

@@ -52,11 +52,19 @@ func (q *Queries) GetMessageByID(ctx context.Context, id string) (Message, error
 	return i, err
 }
 
+
 const getMessagesByThread = `-- name: GetMessagesByThread :many
 SELECT id, thread, sender, content, created_at FROM message
 WHERE thread = $1
 ORDER BY created_at DESC
 `
+const deleteMessage = `-- name: DeleteMessage : one
+DELETE FROM message WHERE id = $1`
+
+func (q *Queries) DeleteMessage(ctx context.Context, id string) error{
+	_,err := q.db.Exec(ctx,deleteMessage,id)
+	return err
+}
 
 func (q *Queries) GetMessagesByThread(ctx context.Context, thread string) ([]Message, error) {
 	rows, err := q.db.Query(ctx, getMessagesByThread, thread)
