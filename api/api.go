@@ -23,7 +23,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.Use(gin.CustomRecovery(func(c *gin.Context, _ any) {
 		c.String(http.StatusInternalServerError, "Internal Server Error: panic")
 		c.AbortWithStatus(http.StatusInternalServerError)
-	}))
+	})) //prevents the server from crashing if an error occurs in any route
 
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)

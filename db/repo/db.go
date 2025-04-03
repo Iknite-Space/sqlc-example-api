@@ -18,15 +18,16 @@ type DBTX interface {
 }
 
 func New(db DBTX) *Queries {
-	return &Queries{db: db}
+	return &Queries{db: db} //creates a new query struct and returns its memory address
 }
 
 type Queries struct {
 	db DBTX
-}
+} //has a field db that stores something that implements DBTX
 
 func (q *Queries) WithTx(tx pgx.Tx) *Queries {
 	return &Queries{
 		db: tx,
 	}
-}
+}//creates a new Queries instance, but replaces db with a transaction(tx) 
+//instead of the regular database connection

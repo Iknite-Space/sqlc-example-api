@@ -14,4 +14,6 @@ type Querier interface {
 	GetMessagesByThread(ctx context.Context, thread string) ([]Message, error)
 }
 
-var _ Querier = (*Queries)(nil)
+var _ Querier = (*Queries)(nil) //ensures that queries implements the querier interface
+//This assigns nil of type *Queries to a variable of type Querier.
+//If Queries does not implement all methods of Querier, the code will fail to compile.
