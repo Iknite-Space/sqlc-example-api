@@ -29,6 +29,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.GET("/message/:id", h.handleGetMessage)
 	r.GET("/thread/:id/messages", h.handleGetThreadMessages)
 	r.DELETE("/message/:id", h.handleDeleteMessage)
+	r.PATCH("/message", h.handleUpdateMessage)
 
 	return r
 }
@@ -99,4 +100,19 @@ func (h *MessageHandler) handleDeleteMessage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
 
+}
+
+func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
+	var req repo.UpdateMessageParams
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.querier.UpdateMessage(c, req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": "Message updated successfully"})
 }

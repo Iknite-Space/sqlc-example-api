@@ -10,11 +10,10 @@ import (
 
 type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	DeleteMessage(ctx context.Context, id string) error
 	GetMessageByID(ctx context.Context, id string) (Message, error)
 	GetMessagesByThread(ctx context.Context, thread string) ([]Message, error)
-	DeleteMessage(ctx context.Context,id string) error
+	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 }
 
-var _ Querier = (*Queries)(nil) //ensures that queries implements the querier interface
-//This assigns nil of type *Queries to a variable of type Querier.
-//If Queries does not implement all methods of Querier, the code will fail to compile.
+var _ Querier = (*Queries)(nil)
