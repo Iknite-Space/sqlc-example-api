@@ -34,6 +34,15 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
+const deleteAll = `-- name: DeleteAll :exec
+DELETE FROM message
+`
+
+func (q *Queries) DeleteAll(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteAll)
+	return err
+}
+
 const deleteMessage = `-- name: DeleteMessage :exec
 DELETE FROM message WHERE id = $1
 `
