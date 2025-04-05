@@ -25,13 +25,34 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 		c.AbortWithStatus(http.StatusInternalServerError)
 	})) //prevents the server from crashing if an error occurs in any route
 
+	r.POST("/thread", h.handleCreateThread)
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
-	r.GET("/thread/:id/messages", h.handleGetThreadMessages)
-	r.DELETE("/message/:id", h.handleDeleteMessage)
+	// r.GET("/thread/:id/messages", h.handleGetThreadMessages)
+	// r.DELETE("/message/:id", h.handleDeleteMessage)
 	r.PATCH("/message", h.handleUpdateMessage)
 
 	return r
+}
+
+type CreateThreadParams struct {
+	Title string `json:"title"`
+}
+
+func (h *MessageHandler) handleCreateThread(c *gin.Context) {
+	var req CreateThreadParams
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	thread, err := h.querier.CreateThread(c, req.Title)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, thread)
 }
 
 func (h *MessageHandler) handleCreateMessage(c *gin.Context) {
@@ -67,40 +88,40 @@ func (h *MessageHandler) handleGetMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, message)
 }
 
-func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
-		return
-	}
+// func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
+// 	id := c.Param("thread_id")
+// 	if id == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+// 		return
+// 	}
 
-	messages, err := h.querier.GetMessagesByThread(c, id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+// 	messages, err := h.querier.GetMessagesByThread(c, id)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"thread":   id,
-		"topic":    "example",
-		"messages": messages,
-	})
-}
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"thread":   id,
+// 		"topic":    "example",
+// 		"messages": messages,
+// 	})
+// }
 
-func (h *MessageHandler) handleDeleteMessage(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
-		return
-	}
+// func (h *MessageHandler) handleDeleteMessage(c *gin.Context) {
+// 	id := c.Param("id")
+// 	if id == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+// 		return
+// 	}
 
-	if err := h.querier.DeleteMessage(c, id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete message"})
-	}
+// 	if err := h.querier.DeleteMessage(c, id); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete message"})
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
+// 	c.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
 
-}
+// }
 
 func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
 	var req repo.UpdateMessageParams
