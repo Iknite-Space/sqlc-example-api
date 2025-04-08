@@ -34,11 +34,12 @@ type Querier interface {
 	// RETURNING *;
 	// -- name: DeleteAll :exec
 	// DELETE FROM message;
-	CreateThread(ctx context.Context,title string) (Thread,error)
+	CreateThread(ctx context.Context, title string) (Thread, error)
 	DeleteMessageById(ctx context.Context, id string) error
 	DeleteMessageByThreadId(ctx context.Context, threadID int32) error
 	GetMessageByID(ctx context.Context, id string) (Message, error)
 	GetMessagesByThread(ctx context.Context, threadID int32) ([]Message, error)
+	GetThreadById(ctx context.Context, id int32) (Thread, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 }
 

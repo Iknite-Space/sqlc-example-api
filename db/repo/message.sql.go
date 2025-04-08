@@ -142,6 +142,17 @@ func (q *Queries) GetMessagesByThread(ctx context.Context, threadID int32) ([]Me
 	return items, nil
 }
 
+const getThreadById = `-- name: GetThreadById :one
+SELECT id, title, created_at FROM thread WHERE id = $1
+`
+
+func (q *Queries) GetThreadById(ctx context.Context, id int32) (Thread, error) {
+	row := q.db.QueryRow(ctx, getThreadById, id)
+	var i Thread
+	err := row.Scan(&i.ID, &i.Title, &i.CreatedAt)
+	return i, err
+}
+
 const updateMessage = `-- name: UpdateMessage :exec
 UPDATE message 
 SET content = $2

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
@@ -29,7 +31,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
 	// r.GET("/thread/:id/messages", h.handleGetThreadMessages)
-	// r.DELETE("/message/:id", h.handleDeleteMessage)
+	// r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.PATCH("/message", h.handleUpdateMessage)
 
 	return r
@@ -57,18 +59,28 @@ func (h *MessageHandler) handleCreateThread(c *gin.Context) {
 
 func (h *MessageHandler) handleCreateMessage(c *gin.Context) {
 	var req repo.CreateMessageParams
-	err := c.ShouldBindBodyWithJSON(&req)
-	if err != nil {
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	//first check whether the thread exist
+	_, err := h.querier.GetThreadById(c, req.ThreadID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Thread not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
+		return
+	}
+
+	//now we proceed to create the message
 	message, err := h.querier.CreateMessage(c, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, message)
 }
 
@@ -108,19 +120,33 @@ func (h *MessageHandler) handleGetMessage(c *gin.Context) {
 // 	})
 // }
 
-// func (h *MessageHandler) handleDeleteMessage(c *gin.Context) {
+// func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
 // 	id := c.Param("id")
 // 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Id cannot be null"})
+// 	}
+
+// 	//start a transaction
+// 	tx, err := h.querier.(*repo.Queries).DB().Begin(c)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start transaction"})
+// 		return
+// 	}
+// 	defer tx.Rollback(c) // will rollback if not committed
+
+// 	txQuerier := h.querier.(*repo.Queries).WithTx(tx)
+
+// 	if err := txQuerier.DeleteMessageById(c, id); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete message"})
+// 	}
+
+// 	// Commit transaction if everything is good
+// 	if err := tx.Commit(c); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit transaction"})
 // 		return
 // 	}
 
-// 	if err := h.querier.DeleteMessage(c, id); err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete message"})
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
-
+// 	c.JSON(http.StatusOK, gin.H{"success": "Deleted successfully"})
 // }
 
 func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
