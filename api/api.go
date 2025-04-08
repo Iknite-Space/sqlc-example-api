@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
+	"github.com/Iknite-Space/sqlc-example-api/helper"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +31,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.POST("/thread", h.handleCreateThread)
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
-	// r.GET("/thread/:id/messages", h.handleGetThreadMessages)
+	r.GET("/thread/messages/:threadId", h.handleGetThreadMessages)
 	// r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.PATCH("/message", h.handleUpdateMessage)
 
@@ -100,25 +101,27 @@ func (h *MessageHandler) handleGetMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, message)
 }
 
-// func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
-// 	id := c.Param("thread_id")
-// 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
-// 		return
-// 	}
+func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
+	id := c.Param("threadId")
+	intVal, err := helper.GetParamAsInt32(id)
 
-// 	messages, err := h.querier.GetMessagesByThread(c, id)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"thread":   id,
-// 		"topic":    "example",
-// 		"messages": messages,
-// 	})
-// }
+	messages, err := h.querier.GetMessagesByThread(c, intVal)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(messages) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No messages found for this thread"})
+	}
+
+	c.JSON(http.StatusOK, messages)
+}
 
 // func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
 // 	id := c.Param("id")
