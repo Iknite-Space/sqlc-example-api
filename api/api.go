@@ -32,7 +32,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
 	r.GET("/thread/messages/:threadId", h.handleGetThreadMessages)
-	// r.DELETE("/message/:id", h.handleDeleteMessageById)
+	r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.PATCH("/message", h.handleUpdateMessage)
 
 	return r
@@ -123,35 +123,6 @@ func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, messages)
 }
 
-// func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
-// 	id := c.Param("id")
-// 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Id cannot be null"})
-// 	}
-
-// 	//start a transaction
-// 	tx, err := h.querier.(*repo.Queries).DB().Begin(c)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start transaction"})
-// 		return
-// 	}
-// 	defer tx.Rollback(c) // will rollback if not committed
-
-// 	txQuerier := h.querier.(*repo.Queries).WithTx(tx)
-
-// 	if err := txQuerier.DeleteMessageById(c, id); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete message"})
-// 	}
-
-// 	// Commit transaction if everything is good
-// 	if err := tx.Commit(c); err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit transaction"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"success": "Deleted successfully"})
-// }
-
 func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
 	var req repo.UpdateMessageParams
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
@@ -165,4 +136,21 @@ func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": "Message updated successfully"})
+}
+
+func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
+	id := c.Param("id")
+
+	_, err := h.querier.DeleteMessageById(c, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Message deleted successfully"})
+
 }

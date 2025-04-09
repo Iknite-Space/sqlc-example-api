@@ -76,13 +76,15 @@ func (q *Queries) CreateThread(ctx context.Context, title string) (Thread, error
 	return i, err
 }
 
-const deleteMessageById = `-- name: DeleteMessageById :exec
+const deleteMessageById = `-- name: DeleteMessageById :one
 DELETE FROM message WHERE id = $1
+RETURNING id
 `
 
-func (q *Queries) DeleteMessageById(ctx context.Context, id string) error {
-	_, err := q.db.Exec(ctx, deleteMessageById, id)
-	return err
+func (q *Queries) DeleteMessageById(ctx context.Context, id string) (string, error) {
+	row := q.db.QueryRow(ctx, deleteMessageById, id)
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteMessageByThreadId = `-- name: DeleteMessageByThreadId :exec

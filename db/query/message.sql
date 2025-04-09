@@ -48,8 +48,9 @@ SELECT * FROM message
 WHERE thread_id = $1
 ORDER BY created_at DESC;
 
--- name: DeleteMessageById :exec
-DELETE FROM message WHERE id = $1;
+-- name: DeleteMessageById :one
+DELETE FROM message WHERE id = $1
+RETURNING id;
 
 -- name: DeleteMessageByThreadId :exec
 DELETE FROM message WHERE thread_id = $1;
