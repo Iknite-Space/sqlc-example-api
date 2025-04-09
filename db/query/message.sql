@@ -64,3 +64,9 @@ RETURNING *;
 
 -- name: GetThreadById :one
 SELECT * FROM thread WHERE id = $1;
+
+
+-- name: CreateOrder :one
+INSERT INTO orders (customer_name,amount,phone_number)
+VALUES($1,$2,$3)
+RETURNING *;

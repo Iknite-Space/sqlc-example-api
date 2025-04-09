@@ -32,6 +32,32 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
+const createOrder = `-- name: CreateOrder :one
+INSERT INTO orders (customer_name,amount,phone_number)
+VALUES($1,$2,$3)
+RETURNING id, customer_name, amount, phone_number, status, created_at
+`
+
+type CreateOrderParams struct {
+	CustomerName string `json:"customer_name"`
+	Amount       int32  `json:"amount"`
+	PhoneNumber  string `json:"phone_number"`
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, createOrder, arg.CustomerName, arg.Amount, arg.PhoneNumber)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerName,
+		&i.Amount,
+		&i.PhoneNumber,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createThread = `-- name: CreateThread :one
 
 

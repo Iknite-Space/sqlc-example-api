@@ -15,6 +15,15 @@ type Message struct {
 	ThreadID  int32            `json:"thread_id"`
 }
 
+type Order struct {
+	ID           int32            `json:"id"`
+	CustomerName string           `json:"customer_name"`
+	Amount       int32            `json:"amount"`
+	PhoneNumber  string           `json:"phone_number"`
+	Status       string           `json:"status"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+}
+
 type Thread struct {
 	ID        int32              `json:"id"`
 	Title     string             `json:"title"`

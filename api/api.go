@@ -35,6 +35,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.DELETE("/thread/:threadId/messages", h.handleDeleteMessageByThreadId)
 	r.PATCH("/message", h.handleUpdateMessage)
+	r.POST("/order", h.handleCreateOrder)
 
 	return r
 }
@@ -177,4 +178,20 @@ func (h *MessageHandler) handleDeleteMessageByThreadId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Message deleted successfully"})
 
+}
+
+func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
+	var req repo.CreateOrderParams
+
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	order, err := h.querier.CreateOrder(c, req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, order)
 }

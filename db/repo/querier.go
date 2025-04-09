@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	// -- name: CreateMessage :one
 	// INSERT INTO message (thread, sender, content)
 	// VALUES ($1, $2, $3)
