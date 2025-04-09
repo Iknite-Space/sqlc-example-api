@@ -52,8 +52,9 @@ ORDER BY created_at DESC;
 DELETE FROM message WHERE id = $1
 RETURNING id;
 
--- name: DeleteMessageByThreadId :exec
-DELETE FROM message WHERE thread_id = $1;
+-- name: DeleteMessageByThreadId :one
+DELETE FROM message WHERE thread_id = $1
+RETURNING thread_id;
 
 -- name: UpdateMessage :exec
 UPDATE message 

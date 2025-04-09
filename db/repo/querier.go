@@ -36,7 +36,7 @@ type Querier interface {
 	// DELETE FROM message;
 	CreateThread(ctx context.Context, title string) (Thread, error)
 	DeleteMessageById(ctx context.Context, id string) (string, error)
-	DeleteMessageByThreadId(ctx context.Context, threadID int32) error
+	DeleteMessageByThreadId(ctx context.Context, threadID int32) (int32, error)
 	GetMessageByID(ctx context.Context, id string) (Message, error)
 	GetMessagesByThread(ctx context.Context, threadID int32) ([]Message, error)
 	GetThreadById(ctx context.Context, id int32) (Thread, error)

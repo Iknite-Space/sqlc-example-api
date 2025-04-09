@@ -33,6 +33,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.GET("/message/:id", h.handleGetMessage)
 	r.GET("/thread/messages/:threadId", h.handleGetThreadMessages)
 	r.DELETE("/message/:id", h.handleDeleteMessageById)
+	r.DELETE("/thread/:threadId/messages", h.handleDeleteMessageByThreadId)
 	r.PATCH("/message", h.handleUpdateMessage)
 
 	return r
@@ -142,6 +143,29 @@ func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
 	id := c.Param("id")
 
 	_, err := h.querier.DeleteMessageById(c, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Message deleted successfully"})
+
+}
+
+func (h *MessageHandler) handleDeleteMessageByThreadId(c *gin.Context) {
+	id := c.Param("threadId")
+
+	intId, err := helper.GetParamAsInt32(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err = h.querier.DeleteMessageByThreadId(c, intId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
