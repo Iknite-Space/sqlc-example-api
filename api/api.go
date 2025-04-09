@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
 	"github.com/Iknite-Space/sqlc-example-api/helper"
@@ -190,8 +192,19 @@ func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
 
 	order, err := h.querier.CreateOrder(c, req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
 		return
 	}
-	c.JSON(http.StatusOK, order)
+	token := os.Getenv("AUTH_TOKEN")
+	reference, err := requestPayment(req.PhoneNumber, fmt.Sprintf("%d", req.Amount), "Order Payment", token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate payment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"order":     order,
+		"reference": reference,
+		"message":   "Order created and payment request initiated.",
+	})
 }
