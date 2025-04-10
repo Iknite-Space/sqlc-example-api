@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
 	"github.com/Iknite-Space/sqlc-example-api/helper"
@@ -33,11 +34,12 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.POST("/thread", h.handleCreateThread)
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
-	r.GET("/thread/messages/:threadId", h.handleGetThreadMessages)
+	// r.GET("/thread/:threadId/messages", h.handleGetThreadMessages)
 	r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.DELETE("/thread/:threadId/messages", h.handleDeleteMessageByThreadId)
 	r.PATCH("/message", h.handleUpdateMessage)
 	r.POST("/order", h.handleCreateOrder)
+	r.GET("/thread/:threadId/messages", h.handleGetPaginatedThreadMessages)
 
 	return r
 }
@@ -105,27 +107,27 @@ func (h *MessageHandler) handleGetMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, message)
 }
 
-func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
-	id := c.Param("threadId")
-	intVal, err := helper.GetParamAsInt32(id)
+// func (h *MessageHandler) handleGetThreadMessages(c *gin.Context) {
+// 	id := c.Param("threadId")
+// 	intVal, err := helper.GetParamAsInt32(id)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	messages, err := h.querier.GetMessagesByThread(c, intVal)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+// 	messages, err := h.querier.GetMessagesByThread(c, intVal)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	if len(messages) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No messages found for this thread"})
-	}
+// 	if len(messages) == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "No messages found for this thread"})
+// 	}
 
-	c.JSON(http.StatusOK, messages)
-}
+// 	c.JSON(http.StatusOK, messages)
+// }
 
 func (h *MessageHandler) handleUpdateMessage(c *gin.Context) {
 	var req repo.UpdateMessageParams
@@ -207,4 +209,43 @@ func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
 		"reference": reference,
 		"message":   "Order created and payment request initiated.",
 	})
+}
+
+// paginated thread messages
+func (h *MessageHandler) handleGetPaginatedThreadMessages(c *gin.Context) {
+	id := c.Param("threadId")
+
+	threadId, err := helper.GetParamAsInt32(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	//parse pagination query params
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	messages, err := h.querier.GetMessageByThreadPaginated(c, repo.GetMessageByThreadPaginatedParams{
+		ThreadID: threadId,
+		Limit:    int32(limit),
+		Offset:   int32(offset),
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch messages"})
+	}
+
+	if len(messages) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No messages found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages)
 }

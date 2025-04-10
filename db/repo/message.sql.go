@@ -142,6 +142,44 @@ func (q *Queries) GetMessageByID(ctx context.Context, id string) (Message, error
 	return i, err
 }
 
+const getMessageByThreadPaginated = `-- name: GetMessageByThreadPaginated :many
+SELECT id, content, created_at, thread_id FROM message
+WHERE thread_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetMessageByThreadPaginatedParams struct {
+	ThreadID int32 `json:"thread_id"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
+}
+
+func (q *Queries) GetMessageByThreadPaginated(ctx context.Context, arg GetMessageByThreadPaginatedParams) ([]Message, error) {
+	rows, err := q.db.Query(ctx, getMessageByThreadPaginated, arg.ThreadID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Message{}
+	for rows.Next() {
+		var i Message
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.CreatedAt,
+			&i.ThreadID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMessagesByThread = `-- name: GetMessagesByThread :many
 SELECT id, content, created_at, thread_id FROM message
 WHERE thread_id = $1

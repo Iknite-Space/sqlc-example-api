@@ -70,3 +70,9 @@ SELECT * FROM thread WHERE id = $1;
 INSERT INTO orders (customer_name,amount,phone_number)
 VALUES($1,$2,$3)
 RETURNING *;
+
+-- name: GetMessageByThreadPaginated :many
+SELECT * FROM message
+WHERE thread_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;

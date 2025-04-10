@@ -39,6 +39,7 @@ type Querier interface {
 	DeleteMessageById(ctx context.Context, id string) (string, error)
 	DeleteMessageByThreadId(ctx context.Context, threadID int32) (int32, error)
 	GetMessageByID(ctx context.Context, id string) (Message, error)
+	GetMessageByThreadPaginated(ctx context.Context, arg GetMessageByThreadPaginatedParams) ([]Message, error)
 	GetMessagesByThread(ctx context.Context, threadID int32) ([]Message, error)
 	GetThreadById(ctx context.Context, id int32) (Thread, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error

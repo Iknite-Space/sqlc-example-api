@@ -27,7 +27,7 @@ func requestPayment(phone, amount, description, token string) (string, error) {
 		From:        phone,
 		Description: description,
 	}
-
+	//encode the req
 	reqBody, err := json.Marshal(paymentReq)
 	if err != nil {
 		return "", err
