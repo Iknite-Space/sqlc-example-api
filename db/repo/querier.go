@@ -11,30 +11,6 @@ import (
 type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
-	// -- name: CreateMessage :one
-	// INSERT INTO message (thread, sender, content)
-	// VALUES ($1, $2, $3)
-	// RETURNING *;
-	// -- name: GetMessageByID :one
-	// SELECT * FROM message
-	// WHERE id = $1;
-	// -- name: GetMessagesByThread :many
-	// SELECT * FROM message
-	// WHERE thread = $1
-	// ORDER BY created_at DESC;
-	// -- name: DeleteMessage :exec
-	// DELETE FROM message WHERE id = $1;
-	// -- name: UpdateMessage :exec
-	// UPDATE message
-	// SET content = $2
-	// WHERE id = $1
-	// RETURNING *;
-	// -- name: CreateThread :one
-	// INSERT INTO thread (title)
-	// VALUES ($1)
-	// RETURNING *;
-	// -- name: DeleteAll :exec
-	// DELETE FROM message;
 	CreateThread(ctx context.Context, title string) (Thread, error)
 	DeleteMessageById(ctx context.Context, id string) (string, error)
 	DeleteMessageByThreadId(ctx context.Context, threadID int32) (int32, error)
@@ -45,4 +21,6 @@ type Querier interface {
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 }
 
-var _ Querier = (*Queries)(nil)
+//compile time assertion
+//this line makes Queries to implement Querier
+var _ Querier = (*Queries)(nil) //makes sure Queries really implements all Querier interface, if not give a compile error

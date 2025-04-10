@@ -48,7 +48,7 @@ func main() {
 // run initializes the application and starts the server.
 // It loads the configuration, sets up the database connection, and starts the HTTP server.
 func run() error {
-	ctx := context.Background()
+	ctx := context.Background() //creates a route context for all DB operations
 	config := Config{}
 
 	// We load the configuration from the .env file in the current directory and populate the Config struct.
@@ -62,7 +62,7 @@ func run() error {
 
 	// We use the configuration values to get the database connection URL.
 	dbConnectionURL := getPostgresConnectionURL(config.DB)
-	db, err := pgxpool.New(ctx, dbConnectionURL)
+	db, err := pgxpool.New(ctx, dbConnectionURL) //connect to postgresSQL using pgxpol (reusable)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
@@ -91,13 +91,13 @@ func run() error {
 
 // LoadConfig reads configuration from file or environment variables.
 func LoadConfig(cfg *Config) error {
-	if _, err := os.Stat(".env"); err == nil {
-		err = godotenv.Load()
+	if _, err := os.Stat(".env"); err == nil { //checks for the presense of an .env
+		err = godotenv.Load() //loads vars from .env to os.Environ, so that we can access them with os.Getenv("DB_USER")
 		if err != nil {
 			return fmt.Errorf("failed to load env file: %w", err)
 		}
 	}
-
+	//conf.Parse() uses reflection to autofill the struct from env vars
 	_, err := conf.Parse("", cfg)
 	if err != nil {
 		if errors.Is(err, conf.ErrHelpWanted) {
@@ -112,20 +112,21 @@ func LoadConfig(cfg *Config) error {
 
 // getPostgresConnectionURL constructs the PostgreSQL connection URL from the provided configuration.
 func getPostgresConnectionURL(config DBConfig) string {
-	queryValues := url.Values{}
+	queryValues := url.Values{} //a map for url query string (e.g sslMode=require)
 	if config.TLSDisabled {
 		queryValues.Add("sslmode", "disable")
 	} else {
 		queryValues.Add("sslmode", "require")
-	}
+	} //decide whether to disable TLS or not
 
+	//construct the actual URL
 	dbURL := url.URL{
-		Scheme:   "postgres",
-		User:     url.UserPassword(config.DBUser, config.DBPassword),
-		Host:     fmt.Sprintf("%s:%d", config.DBHost, config.DBPort),
-		Path:     config.DBName,
-		RawQuery: queryValues.Encode(),
+		Scheme:   "postgres",                                         //this makes it makes it postgres:// URL
+		User:     url.UserPassword(config.DBUser, config.DBPassword), //injects the username and password
+		Host:     fmt.Sprintf("%s:%d", config.DBHost, config.DBPort), //localhost:8085
+		Path:     config.DBName,                                      // this is the name of the database
+		RawQuery: queryValues.Encode(),                               //adds the  ?sslmode=require part
 	}
 
-	return dbURL.String()
+	return dbURL.String() //and finally returns somethings like this postgres://ichami:supersecret@localhost:5432/mydb?sslmode=disable
 }
