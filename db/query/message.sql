@@ -1,3 +1,8 @@
+-- name: CreateThread :one
+INSERT INTO thread (thread)
+VALUE ($1)
+RETURNING *;
+
 -- name: CreateMessage :one
 INSERT INTO message (thread, sender, content)
 VALUES ($1, $2, $3)
@@ -11,3 +16,14 @@ WHERE id = $1;
 SELECT * FROM message
 WHERE thread = $1
 ORDER BY created_at DESC;
+
+-- name: DeleteMessageByID :exec
+DELETE FROM message
+WHERE id = $1;
+
+-- name: UpdateMessageByID :one
+UPDATE message 
+SET sender = $1, content = $2 
+WHERE id = $3
+RETURNING *;
+
