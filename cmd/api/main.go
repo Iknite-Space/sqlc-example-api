@@ -15,6 +15,7 @@ import (
 
 	"github.com/Iknite-Space/sqlc-example-api/api"
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
+	"github.com/Iknite-Space/sqlc-example-api/db/store"
 )
 
 // DBConfig holds the database configuration. This struct is populated from the .env in the current directory.
@@ -75,7 +76,7 @@ func run() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	querier := repo.New(db)
+	querier := store.NewStore(db)
 
 	// We create a new http handler using the database querier.
 	handler := api.NewMessageHandler(querier).WireHttpHandler()

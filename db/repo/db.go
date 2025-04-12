@@ -18,6 +18,7 @@ type DBTX interface {
 	QueryRow(context.Context, string, ...interface{}) pgx.Row //run select that returns exactly one row(or none)
 }
 
+
 func New(db DBTX) *Queries { //creates new query instance
 	return &Queries{db: db}
 }
