@@ -27,7 +27,7 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 		c.String(http.StatusInternalServerError, "Internal Server Error: panic")
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}))
-
+	r.POST("/thread/:id", h.handleCreateThreadMessage)
 	r.POST("/message", h.handleCreateMessage)
 	r.GET("/message/:id", h.handleGetMessage)
 	r.GET("/thread/:id/messages", h.handleGetThreadMessages)
@@ -36,6 +36,21 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	return r
 }
 
+func (h *MessageHandler) handleCreateThreadMessage(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+		return
+	}
+
+	message, err := h.querier.CreateThread(c, &id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, message)
+}
 
 func (h *MessageHandler) handleCreateMessage(c *gin.Context) {
 	var req repo.CreateMessageParams

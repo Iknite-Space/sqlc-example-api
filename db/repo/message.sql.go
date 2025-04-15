@@ -34,6 +34,19 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
+const createThread = `-- name: CreateThread :one
+INSERT INTO thread (thread_id)
+VALUES ($1)
+RETURNING id, thread_id, created_at
+`
+
+func (q *Queries) CreateThread(ctx context.Context, threadID *string) (Thread, error) {
+	row := q.db.QueryRow(ctx, createThread, threadID)
+	var i Thread
+	err := row.Scan(&i.ID, &i.ThreadID, &i.CreatedAt)
+	return i, err
+}
+
 const deleteMessageByID = `-- name: DeleteMessageByID :exec
 DELETE FROM message
 WHERE id = $1

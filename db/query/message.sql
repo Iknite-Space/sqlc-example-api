@@ -1,6 +1,6 @@
 -- name: CreateThread :one
-INSERT INTO thread (thread)
-VALUE ($1)
+INSERT INTO thread (thread_id)
+VALUES ($1)
 RETURNING *;
 
 -- name: CreateMessage :one

@@ -15,3 +15,9 @@ type Message struct {
 	Content   string           `json:"content"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
+
+type Thread struct {
+	ID        string           `json:"id"`
+	ThreadID  *string          `json:"thread_id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
