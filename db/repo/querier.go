@@ -10,8 +10,13 @@ import (
 
 type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
-	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
+	CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (ProductCategory, error)
+	CreateProductGallery(ctx context.Context, arg CreateProductGalleryParams) error
+	CreateProductVariation(ctx context.Context, arg CreateProductVariationParams) (int32, error)
+	CreateSingleProduct(ctx context.Context, arg CreateSingleProductParams) (int32, error)
+	CreateStock(ctx context.Context, arg CreateStockParams) (int32, error)
 	CreateThread(ctx context.Context, title string) (Thread, error)
+	CreateVariableProduct(ctx context.Context, arg CreateVariableProductParams) (int32, error)
 	DeleteMessageById(ctx context.Context, id string) (string, error)
 	DeleteMessageByThreadId(ctx context.Context, threadID int32) (int32, error)
 	GetMessageByID(ctx context.Context, id string) (Message, error)
@@ -21,6 +26,4 @@ type Querier interface {
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 }
 
-//compile time assertion
-//this line makes Queries to implement Querier
-var _ Querier = (*Queries)(nil) //makes sure Queries really implements all Querier interface, if not give a compile error
+var _ Querier = (*Queries)(nil)

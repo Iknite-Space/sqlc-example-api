@@ -16,12 +16,87 @@ type Message struct {
 }
 
 type Order struct {
-	ID           int32            `json:"id"`
-	CustomerName string           `json:"customer_name"`
-	Amount       int32            `json:"amount"`
-	PhoneNumber  string           `json:"phone_number"`
-	Status       string           `json:"status"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	ID              int32            `json:"id"`
+	CustomerID      *int32           `json:"customer_id"`
+	TotalAmount     pgtype.Numeric   `json:"total_amount"`
+	Status          *string          `json:"status"`
+	ShippingAddress string           `json:"shipping_address"`
+	BillingAddress  string           `json:"billing_address"`
+	PlacedAt        pgtype.Timestamp `json:"placed_at"`
+	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+}
+
+type OrderItem struct {
+	ID          int32            `json:"id"`
+	OrderID     *int32           `json:"order_id"`
+	ProductID   *int32           `json:"product_id"`
+	VariationID *int32           `json:"variation_id"`
+	Quantity    int32            `json:"quantity"`
+	Price       pgtype.Numeric   `json:"price"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}
+
+type Payment struct {
+	ID                   int32            `json:"id"`
+	OrderID              *int32           `json:"order_id"`
+	Amount               pgtype.Numeric   `json:"amount"`
+	PaymentMethod        *string          `json:"payment_method"`
+	PaymentStatus        *string          `json:"payment_status"`
+	TransactionReference *string          `json:"transaction_reference"`
+	PaidAt               pgtype.Timestamp `json:"paid_at"`
+}
+
+type Product struct {
+	ID               int32            `json:"id"`
+	CategoryID       *int32           `json:"category_id"`
+	Name             string           `json:"name"`
+	Slug             string           `json:"slug"`
+	Description      string           `json:"description"`
+	Type             string           `json:"type"`
+	RegularPrice     pgtype.Numeric   `json:"regular_price"`
+	SalePrice        pgtype.Numeric   `json:"sale_price"`
+	Sku              *string          `json:"sku"`
+	StockID          *int32           `json:"stock_id"`
+	MainImageUrl     *string          `json:"main_image_url"`
+	ProductGalleryID *int32           `json:"product_gallery_id"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
+}
+
+type ProductCategory struct {
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	Slug      string           `json:"slug"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+}
+
+type ProductGallery struct {
+	ID        int32            `json:"id"`
+	ProductID *int32           `json:"product_id"`
+	ImageUrl  string           `json:"image_url"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
+type ProductVariation struct {
+	ID             int32            `json:"id"`
+	ProductID      *int32           `json:"product_id"`
+	VariationName  string           `json:"variation_name"`
+	VariationValue string           `json:"variation_value"`
+	RegularPrice   pgtype.Numeric   `json:"regular_price"`
+	SalePrice      pgtype.Numeric   `json:"sale_price"`
+	Sku            *string          `json:"sku"`
+	StockID        *int32           `json:"stock_id"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+}
+
+type Stock struct {
+	ID                int32            `json:"id"`
+	Quantity          int32            `json:"quantity"`
+	LowStockThreshold *int32           `json:"low_stock_threshold"`
+	CreatedAt         pgtype.Timestamp `json:"created_at"`
+	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
 }
 
 type Thread struct {

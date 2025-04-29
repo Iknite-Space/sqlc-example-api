@@ -7,6 +7,8 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMessage = `-- name: CreateMessage :one
@@ -32,74 +34,199 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
-const createOrder = `-- name: CreateOrder :one
-INSERT INTO orders (customer_name,amount,phone_number)
-VALUES($1,$2,$3)
-RETURNING id, customer_name, amount, phone_number, status, created_at
+const createProductCategory = `-- name: CreateProductCategory :one
+INSERT INTO product_categories (name, slug)
+VALUES ($1, $2)
+RETURNING id, name, slug, created_at, updated_at
 `
 
-type CreateOrderParams struct {
-	CustomerName string `json:"customer_name"`
-	Amount       int32  `json:"amount"`
-	PhoneNumber  string `json:"phone_number"`
+type CreateProductCategoryParams struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
-func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
-	row := q.db.QueryRow(ctx, createOrder, arg.CustomerName, arg.Amount, arg.PhoneNumber)
-	var i Order
+func (q *Queries) CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (ProductCategory, error) {
+	row := q.db.QueryRow(ctx, createProductCategory, arg.Name, arg.Slug)
+	var i ProductCategory
 	err := row.Scan(
 		&i.ID,
-		&i.CustomerName,
-		&i.Amount,
-		&i.PhoneNumber,
-		&i.Status,
+		&i.Name,
+		&i.Slug,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
+const createProductGallery = `-- name: CreateProductGallery :exec
+INSERT INTO product_gallery (
+    product_id,
+    image_url
+)
+VALUES ($1, $2)
+`
+
+type CreateProductGalleryParams struct {
+	ProductID *int32 `json:"product_id"`
+	ImageUrl  string `json:"image_url"`
+}
+
+func (q *Queries) CreateProductGallery(ctx context.Context, arg CreateProductGalleryParams) error {
+	_, err := q.db.Exec(ctx, createProductGallery, arg.ProductID, arg.ImageUrl)
+	return err
+}
+
+const createProductVariation = `-- name: CreateProductVariation :one
+INSERT INTO product_variations (
+    product_id,
+    variation_name,
+    variation_value,
+    regular_price,
+    sale_price,
+    sku,
+    stock_id
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id
+`
+
+type CreateProductVariationParams struct {
+	ProductID      *int32         `json:"product_id"`
+	VariationName  string         `json:"variation_name"`
+	VariationValue string         `json:"variation_value"`
+	RegularPrice   pgtype.Numeric `json:"regular_price"`
+	SalePrice      pgtype.Numeric `json:"sale_price"`
+	Sku            *string        `json:"sku"`
+	StockID        *int32         `json:"stock_id"`
+}
+
+func (q *Queries) CreateProductVariation(ctx context.Context, arg CreateProductVariationParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createProductVariation,
+		arg.ProductID,
+		arg.VariationName,
+		arg.VariationValue,
+		arg.RegularPrice,
+		arg.SalePrice,
+		arg.Sku,
+		arg.StockID,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createSingleProduct = `-- name: CreateSingleProduct :one
+INSERT INTO products (
+    category_id,
+    name,
+    slug,
+    description,
+    type,
+    regular_price,
+    sale_price,
+    sku,
+    stock_id,
+    main_image_url
+)
+VALUES ($1, $2, $3, $4, 'single', $5, $6, $7, $8, $9)
+RETURNING id
+`
+
+type CreateSingleProductParams struct {
+	CategoryID   *int32         `json:"category_id"`
+	Name         string         `json:"name"`
+	Slug         string         `json:"slug"`
+	Description  string         `json:"description"`
+	RegularPrice pgtype.Numeric `json:"regular_price"`
+	SalePrice    pgtype.Numeric `json:"sale_price"`
+	Sku          *string        `json:"sku"`
+	StockID      *int32         `json:"stock_id"`
+	MainImageUrl *string        `json:"main_image_url"`
+}
+
+func (q *Queries) CreateSingleProduct(ctx context.Context, arg CreateSingleProductParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createSingleProduct,
+		arg.CategoryID,
+		arg.Name,
+		arg.Slug,
+		arg.Description,
+		arg.RegularPrice,
+		arg.SalePrice,
+		arg.Sku,
+		arg.StockID,
+		arg.MainImageUrl,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createStock = `-- name: CreateStock :one
+INSERT INTO stock (
+    quantity,
+    low_stock_threshold
+)
+VALUES ($1, $2)
+RETURNING id
+`
+
+type CreateStockParams struct {
+	Quantity          int32  `json:"quantity"`
+	LowStockThreshold *int32 `json:"low_stock_threshold"`
+}
+
+func (q *Queries) CreateStock(ctx context.Context, arg CreateStockParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createStock, arg.Quantity, arg.LowStockThreshold)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createThread = `-- name: CreateThread :one
-
-
-
-
-
-
-
 INSERT INTO thread (title)
 VALUES ($1)
 RETURNING id, title, created_at
 `
 
-// -- name: CreateMessage :one
-// INSERT INTO message (thread, sender, content)
-// VALUES ($1, $2, $3)
-// RETURNING *;
-// -- name: GetMessageByID :one
-// SELECT * FROM message
-// WHERE id = $1;
-// -- name: GetMessagesByThread :many
-// SELECT * FROM message
-// WHERE thread = $1
-// ORDER BY created_at DESC;
-// -- name: DeleteMessage :exec
-// DELETE FROM message WHERE id = $1;
-// -- name: UpdateMessage :exec
-// UPDATE message
-// SET content = $2
-// WHERE id = $1
-// RETURNING *;
-// -- name: CreateThread :one
-// INSERT INTO thread (title)
-// VALUES ($1)
-// RETURNING *;
-// -- name: DeleteAll :exec
-// DELETE FROM message;
 func (q *Queries) CreateThread(ctx context.Context, title string) (Thread, error) {
 	row := q.db.QueryRow(ctx, createThread, title)
 	var i Thread
 	err := row.Scan(&i.ID, &i.Title, &i.CreatedAt)
 	return i, err
+}
+
+const createVariableProduct = `-- name: CreateVariableProduct :one
+INSERT INTO products (
+    category_id,
+    name,
+    slug,
+    description,
+    type,
+    main_image_url
+)
+VALUES ($1, $2, $3, $4, 'variable', $5)
+RETURNING id
+`
+
+type CreateVariableProductParams struct {
+	CategoryID   *int32  `json:"category_id"`
+	Name         string  `json:"name"`
+	Slug         string  `json:"slug"`
+	Description  string  `json:"description"`
+	MainImageUrl *string `json:"main_image_url"`
+}
+
+func (q *Queries) CreateVariableProduct(ctx context.Context, arg CreateVariableProductParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createVariableProduct,
+		arg.CategoryID,
+		arg.Name,
+		arg.Slug,
+		arg.Description,
+		arg.MainImageUrl,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteMessageById = `-- name: DeleteMessageById :one

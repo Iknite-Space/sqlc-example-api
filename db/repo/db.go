@@ -11,19 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-//represents the raw database actions
 type DBTX interface {
-	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error) //run sql query like INSERT,DELETE,UPDATE etc
-	Query(context.Context, string, ...interface{}) (pgx.Rows, error) //runs a select that returns multiple rows
-	QueryRow(context.Context, string, ...interface{}) pgx.Row //run select that returns exactly one row(or none)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
 }
 
-
-func New(db DBTX) *Queries { //creates new query instance
+func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
-type Queries struct { //holds all generated sqlc methods (createthread,createorder, etc)
+type Queries struct {
 	db DBTX
 }
 
@@ -31,5 +29,4 @@ func (q *Queries) WithTx(tx pgx.Tx) *Queries {
 	return &Queries{
 		db: tx,
 	}
-}//creates a new query instance, but instead of using default db(which is usually connection pool)
-//it uses a transaction to run the queries 
+}

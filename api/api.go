@@ -3,15 +3,14 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
 	"github.com/Iknite-Space/sqlc-example-api/db/store"
 	"github.com/Iknite-Space/sqlc-example-api/helper"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // messageHandler holds the methods that respond to http routes
@@ -43,10 +42,171 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 	r.DELETE("/message/:id", h.handleDeleteMessageById)
 	r.DELETE("/thread/:threadId/messages", h.handleDeleteMessageByThreadId)
 	r.PATCH("/message", h.handleUpdateMessage)
-	r.POST("/order", h.handleCreateOrder)
+	// r.POST("/order", h.handleCreateOrder)
 	r.GET("/thread/:threadId/messages", h.handleGetPaginatedThreadMessages)
 
+	r.POST("/category", h.handleCreateCategory)
+	r.POST("/product", h.handleCreateProduct)
+
 	return r
+}
+
+func (h *MessageHandler) handleCreateCategory(c *gin.Context) {
+	var req repo.CreateProductCategoryParams
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	category, err := h.querier.Do().CreateProductCategory(c, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, category)
+}
+
+// CreateProductRequest is for receiving from frontend
+type CreateProductRequest struct {
+	CategoryID     int32                               `json:"category_id"`
+	Name           string                              `json:"name"`
+	Slug           string                              `json:"slug"`
+	Description    string                              `json:"description"`
+	Type           string                              `json:"type"` // single or variable
+	RegularPrice   pgtype.Numeric                      `json:"regular_price"`
+	SalePrice      pgtype.Numeric                      `json:"sale_price"`
+	SKU            *string                             `json:"sku"`
+	StockID        *int32                              `json:"stock_id"`
+	MainImageUrl   *string                             `json:"main_image_url"`
+	Variations     []repo.CreateProductVariationParams `json:"variations,omitempty"`
+	Stock          repo.CreateStockParams              `json:"stock,omitempty"`           // for single products
+	VariationStock []repo.CreateStockParams            `json:"variation_stock,omitempty"` // for variable products
+	Gallery        []repo.CreateProductGalleryParams   `json:"gallery,omitempty"`
+}
+
+func (h *MessageHandler) handleCreateProduct(c *gin.Context) {
+	var req CreateProductRequest
+
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload", "details": err.Error()})
+		return
+	}
+
+	// Start the transaction
+	q, tx, err := h.querier.Begin(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to begin transaction"})
+		return
+	}
+	defer tx.Rollback(c) // Will rollback unless committed later
+
+	var pid int32
+
+	// Create stock if provided, for single products
+	if req.Type == "single" && req.Stock != (repo.CreateStockParams{}) {
+		stockID, err := q.CreateStock(c, req.Stock)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create stock", "details": err.Error()})
+			return
+		}
+		req.StockID = &stockID
+	}
+
+	// Create product based on type
+	switch req.Type {
+	case "single":
+		pid, err = q.CreateSingleProduct(c, repo.CreateSingleProductParams{
+			CategoryID:   &req.CategoryID,
+			Name:         req.Name,
+			Slug:         req.Slug,
+			Description:  req.Description,
+			RegularPrice: req.RegularPrice,
+			SalePrice:    req.SalePrice,
+			Sku:          req.SKU,
+			StockID:      req.StockID,
+			MainImageUrl: req.MainImageUrl,
+		})
+	case "variable":
+		pid, err = q.CreateVariableProduct(c, repo.CreateVariableProductParams{
+			CategoryID:   &req.CategoryID,
+			Name:         req.Name,
+			Slug:         req.Slug,
+			Description:  req.Description,
+			MainImageUrl: req.MainImageUrl,
+		})
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product type"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create product", "details": err.Error()})
+		return
+	}
+
+	// Handle variations (for variable products)
+	if req.Type == "variable" && len(req.Variations) > 0 {
+		for i, variation := range req.Variations {
+			var stockID *int32 = nil //default to nil for missing stock
+
+			// if there's a corresponding stock for this variation, create it
+			if i < len(req.VariationStock) {
+				stock := req.VariationStock[i]
+				newStockID, err := q.CreateStock(c, repo.CreateStockParams{
+					Quantity:          stock.Quantity,
+					LowStockThreshold: stock.LowStockThreshold,
+				})
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error":   "failed to create stock for variation",
+						"details": err.Error(),
+					})
+					return
+				}
+				stockID = &newStockID // assign stock ID
+			}
+
+			//create the product variation
+			variation.ProductID = &pid
+			_, err := q.CreateProductVariation(c, repo.CreateProductVariationParams{
+				ProductID:      variation.ProductID,
+				VariationName:  variation.VariationName,
+				VariationValue: variation.VariationValue,
+				RegularPrice:   variation.RegularPrice,
+				SalePrice:      variation.SalePrice,
+				Sku:            variation.Sku,
+				StockID:        stockID,
+			})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create variation", "details": err.Error()})
+				return
+			}
+		}
+	}
+
+	// Handle gallery images
+	if len(req.Gallery) > 0 {
+		for _, gallery := range req.Gallery {
+			gallery.ProductID = &pid
+			err := q.CreateProductGallery(c, repo.CreateProductGalleryParams{
+				ProductID: gallery.ProductID,
+				ImageUrl:  gallery.ImageUrl,
+			})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create gallery", "details": err.Error()})
+				return
+			}
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(c); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit transaction", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "product created successfully", "product_id": pid})
 }
 
 type CreateThreadParams struct {
@@ -156,36 +316,14 @@ func (h *MessageHandler) handleDeleteMessageById(c *gin.Context) {
 		return
 	}
 
-	// Start the transaction
-	q, tx, err := h.querier.Begin(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to begin transaction"})
-		return
-	}
-
-	// Ensure rollback happens if function returns before commit
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(c); rollbackErr != nil && rollbackErr.Error() != "pgx: transaction has already been committed or rolled back" {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": rollbackErr.Error()})
-			}
-		}
-	}()
-
 	// Execute the deletion inside the transaction
-	_, err = q.DeleteMessageById(c, id)
+	_, err := h.querier.Do().DeleteMessageById(c, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "message not found"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Commit transaction only if everything above succeeds
-	if err = tx.Commit(c); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit transaction"})
 		return
 	}
 
@@ -215,32 +353,32 @@ func (h *MessageHandler) handleDeleteMessageByThreadId(c *gin.Context) {
 
 }
 
-func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
-	var req repo.CreateOrderParams
+// func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
+// 	var req repo.CreateOrderParams
 
-	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
+// 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	order, err := h.querier.Do().CreateOrder(c, req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
-		return
-	}
-	token := os.Getenv("AUTH_TOKEN")
-	reference, err := requestPayment(req.PhoneNumber, fmt.Sprintf("%d", req.Amount), "Order Payment", token)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate payment"})
-		return
-	}
+// 	order, err := h.querier.Do().CreateOrder(c, req)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
+// 		return
+// 	}
+// 	token := os.Getenv("AUTH_TOKEN")
+// 	reference, err := requestPayment(req.PhoneNumber, fmt.Sprintf("%d", req.Amount), "Order Payment", token)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate payment"})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"order":     order,
-		"reference": reference,
-		"message":   "Order created and payment request initiated.",
-	})
-}
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"order":     order,
+// 		"reference": reference,
+// 		"message":   "Order created and payment request initiated.",
+// 	})
+// }
 
 // paginated thread messages
 func (h *MessageHandler) handleGetPaginatedThreadMessages(c *gin.Context) {

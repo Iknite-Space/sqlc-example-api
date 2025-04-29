@@ -20,7 +20,7 @@ CREATE TABLE products (
     sku VARCHAR(100) UNIQUE, -- SKU for single products
     stock_id INT,
     main_image_url VARCHAR(255), 
-    product_gallery_id INT,
+    product_gallery_id INT, -- i will have tp drop this column
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
