@@ -77,7 +77,6 @@ type CreateProductRequest struct {
 	RegularPrice   pgtype.Numeric                      `json:"regular_price"`
 	SalePrice      pgtype.Numeric                      `json:"sale_price"`
 	SKU            *string                             `json:"sku"`
-	StockID        *int32                              `json:"stock_id"`
 	MainImageUrl   *string                             `json:"main_image_url"`
 	Variations     []repo.CreateProductVariationParams `json:"variations,omitempty"`
 	Stock          repo.CreateStockParams              `json:"stock,omitempty"`           // for single products
@@ -101,7 +100,7 @@ func (h *MessageHandler) handleCreateProduct(c *gin.Context) {
 	}
 	defer tx.Rollback(c) // Will rollback unless committed later
 
-	var pid int32
+	var pid, stockId int32
 
 	// Create stock if provided, for single products
 	if req.Type == "single" && req.Stock != (repo.CreateStockParams{}) {
@@ -110,7 +109,7 @@ func (h *MessageHandler) handleCreateProduct(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create stock", "details": err.Error()})
 			return
 		}
-		req.StockID = &stockID
+		stockId = stockID
 	}
 
 	// Create product based on type
@@ -124,7 +123,7 @@ func (h *MessageHandler) handleCreateProduct(c *gin.Context) {
 			RegularPrice: req.RegularPrice,
 			SalePrice:    req.SalePrice,
 			Sku:          req.SKU,
-			StockID:      req.StockID,
+			StockID:      &stockId,
 			MainImageUrl: req.MainImageUrl,
 		})
 	case "variable":
