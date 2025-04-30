@@ -11,6 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkPaymentStatus = `-- name: CheckPaymentStatus :one
+SELECT payment_status FROM payments
+WHERE transaction_reference = $1
+`
+
+func (q *Queries) CheckPaymentStatus(ctx context.Context, transactionReference *string) (*string, error) {
+	row := q.db.QueryRow(ctx, checkPaymentStatus, transactionReference)
+	var payment_status *string
+	err := row.Scan(&payment_status)
+	return payment_status, err
+}
+
 const createMessage = `-- name: CreateMessage :one
 INSERT INTO message (content,thread_id)
 VALUES ($1, $2)
@@ -32,6 +44,96 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		&i.ThreadID,
 	)
 	return i, err
+}
+
+const createOrder = `-- name: CreateOrder :one
+INSERT INTO orders (
+    customer_id,
+    total_amount,
+    shipping_address,
+    billing_address
+)
+VALUES ($1, $2, $3, $4)
+RETURNING id
+`
+
+type CreateOrderParams struct {
+	CustomerID      *int32         `json:"customer_id"`
+	TotalAmount     pgtype.Numeric `json:"total_amount"`
+	ShippingAddress string         `json:"shipping_address"`
+	BillingAddress  string         `json:"billing_address"`
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createOrder,
+		arg.CustomerID,
+		arg.TotalAmount,
+		arg.ShippingAddress,
+		arg.BillingAddress,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createOrderItems = `-- name: CreateOrderItems :one
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    variation_id,
+    quantity,
+    price
+)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id
+`
+
+type CreateOrderItemsParams struct {
+	OrderID     *int32         `json:"order_id"`
+	ProductID   *int32         `json:"product_id"`
+	VariationID *int32         `json:"variation_id"`
+	Quantity    int32          `json:"quantity"`
+	Price       pgtype.Numeric `json:"price"`
+}
+
+func (q *Queries) CreateOrderItems(ctx context.Context, arg CreateOrderItemsParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createOrderItems,
+		arg.OrderID,
+		arg.ProductID,
+		arg.VariationID,
+		arg.Quantity,
+		arg.Price,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createPayment = `-- name: CreatePayment :exec
+INSERT INTO payments (
+    order_id,
+    amount,
+    payment_method,
+    transaction_reference
+)
+VALUES ($1, $2, $3, $4)
+`
+
+type CreatePaymentParams struct {
+	OrderID              *int32         `json:"order_id"`
+	Amount               pgtype.Numeric `json:"amount"`
+	PaymentMethod        *string        `json:"payment_method"`
+	TransactionReference *string        `json:"transaction_reference"`
+}
+
+func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) error {
+	_, err := q.db.Exec(ctx, createPayment,
+		arg.OrderID,
+		arg.Amount,
+		arg.PaymentMethod,
+		arg.TransactionReference,
+	)
+	return err
 }
 
 const createProductCategory = `-- name: CreateProductCategory :one
@@ -364,4 +466,59 @@ type UpdateMessageParams struct {
 func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) error {
 	_, err := q.db.Exec(ctx, updateMessage, arg.ID, arg.Content)
 	return err
+}
+
+const updateOrderStatus = `-- name: UpdateOrderStatus :one
+UPDATE orders
+SET status = $2
+WHERE id = $1
+RETURNING id, customer_id, total_amount, status, shipping_address, billing_address, placed_at, updated_at
+`
+
+type UpdateOrderStatusParams struct {
+	ID     int32   `json:"id"`
+	Status *string `json:"status"`
+}
+
+func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrderStatus, arg.ID, arg.Status)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerID,
+		&i.TotalAmount,
+		&i.Status,
+		&i.ShippingAddress,
+		&i.BillingAddress,
+		&i.PlacedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updatePaymentStatus = `-- name: UpdatePaymentStatus :one
+UPDATE payments
+SET payment_status = $2, paid_at = CURRENT_TIMESTAMP
+WHERE transaction_reference = $1
+RETURNING id, order_id, amount, payment_method, payment_status, transaction_reference, paid_at
+`
+
+type UpdatePaymentStatusParams struct {
+	TransactionReference *string `json:"transaction_reference"`
+	PaymentStatus        *string `json:"payment_status"`
+}
+
+func (q *Queries) UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStatusParams) (Payment, error) {
+	row := q.db.QueryRow(ctx, updatePaymentStatus, arg.TransactionReference, arg.PaymentStatus)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.Amount,
+		&i.PaymentMethod,
+		&i.PaymentStatus,
+		&i.TransactionReference,
+		&i.PaidAt,
+	)
+	return i, err
 }

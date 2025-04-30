@@ -9,7 +9,11 @@ import (
 )
 
 type Querier interface {
+	CheckPaymentStatus(ctx context.Context, transactionReference *string) (*string, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (int32, error)
+	CreateOrderItems(ctx context.Context, arg CreateOrderItemsParams) (int32, error)
+	CreatePayment(ctx context.Context, arg CreatePaymentParams) error
 	CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (ProductCategory, error)
 	CreateProductGallery(ctx context.Context, arg CreateProductGalleryParams) error
 	CreateProductVariation(ctx context.Context, arg CreateProductVariationParams) (int32, error)
@@ -24,6 +28,8 @@ type Querier interface {
 	GetMessagesByThread(ctx context.Context, threadID int32) ([]Message, error)
 	GetThreadById(ctx context.Context, id int32) (Thread, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
+	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
+	UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStatusParams) (Payment, error)
 }
 
 var _ Querier = (*Queries)(nil)

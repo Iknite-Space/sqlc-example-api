@@ -101,3 +101,48 @@ INSERT INTO product_variations (
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id;
+
+-- name: CreateOrder :one
+INSERT INTO orders (
+    customer_id,
+    total_amount,
+    shipping_address,
+    billing_address
+)
+VALUES ($1, $2, $3, $4)
+RETURNING id;
+
+-- name: CreateOrderItems :one
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    variation_id,
+    quantity,
+    price
+)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id;
+-- name: CreatePayment :exec
+INSERT INTO payments (
+    order_id,
+    amount,
+    payment_method,
+    transaction_reference
+)
+VALUES ($1, $2, $3, $4);
+
+-- name: CheckPaymentStatus :one
+SELECT payment_status FROM payments
+WHERE transaction_reference = $1;
+
+-- name: UpdatePaymentStatus :one
+UPDATE payments
+SET payment_status = $2, paid_at = CURRENT_TIMESTAMP
+WHERE transaction_reference = $1
+RETURNING *;
+
+-- name: UpdateOrderStatus :one
+UPDATE orders
+SET status = $2
+WHERE id = $1
+RETURNING *;

@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
 	"github.com/Iknite-Space/sqlc-example-api/db/store"
@@ -47,6 +49,8 @@ func (h *MessageHandler) WireHttpHandler() http.Handler {
 
 	r.POST("/category", h.handleCreateCategory)
 	r.POST("/product", h.handleCreateProduct)
+	r.POST("/order", h.handleCreateOrder)
+	r.GET("/payment/webhook", h.handlePaymentWebhook)
 
 	return r
 }
@@ -206,6 +210,133 @@ func (h *MessageHandler) handleCreateProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "product created successfully", "product_id": pid})
+}
+
+type CreateOrderRequest struct {
+	CustomerID      *int32                        `json:"customer_id"`
+	TotalAmount     pgtype.Numeric                `json:"total_amount"`
+	ShippingAddress string                        `json:"shipping_address"`
+	BillingAddress  string                        `json:"billing_address"`
+	Items           []repo.CreateOrderItemsParams `json:"items,omitempty"`
+	Payment         repo.CreatePaymentParams      `json:"payment"`
+}
+
+func (h *MessageHandler) handleCreateOrder(c *gin.Context) {
+	var req CreateOrderRequest
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload", "details": err.Error()})
+		return
+	}
+	// Start the transaction
+	q, tx, err := h.querier.Begin(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to begin transaction"})
+		return
+	}
+	defer tx.Rollback(c) // Will rollback unless committed later
+
+	var orderId int32
+	// Create the order
+	orderId, err = q.CreateOrder(c, repo.CreateOrderParams{
+		CustomerID:      req.CustomerID,
+		TotalAmount:     req.TotalAmount,
+		ShippingAddress: req.ShippingAddress,
+		BillingAddress:  req.BillingAddress,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order", "details": err.Error()})
+		return
+	}
+
+	//add the order items
+	for _, item := range req.Items {
+		item.OrderID = &orderId
+		if _, err := q.CreateOrderItems(c, repo.CreateOrderItemsParams{
+			OrderID:   item.OrderID,
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+			Price:     item.Price,
+		}); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order items", "details": err.Error()})
+			return
+		}
+	}
+
+	//initiate the payment via campay
+	token := os.Getenv("AUTH_TOKEN")
+	amountStr, err := helper.NumericToString(req.Payment.Amount)
+	if err != nil {
+		return
+	}
+	reference, err := requestPayment(req.BillingAddress, amountStr, "Order Payment", token)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate payment", "details": err.Error()})
+		return
+	}
+
+	// Create the payment
+	err = q.CreatePayment(c, repo.CreatePaymentParams{
+		OrderID:              &orderId,
+		Amount:               req.Payment.Amount,
+		PaymentMethod:        req.Payment.PaymentMethod,
+		TransactionReference: &reference,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create payment", "details": err.Error()})
+		return
+	}
+
+	//wait for the payment to be completed
+	timeCount := 4
+	var paymentStatus string
+	for i := 0; i < timeCount; i++ {
+		time.Sleep(5 * time.Second)
+		paymentStatus = CheckTransationStatus(token, reference)
+		if paymentStatus != "PENDING" {
+			//update the payment status
+			if _, err := q.UpdatePaymentStatus(c, repo.UpdatePaymentStatusParams{
+				TransactionReference: &reference,
+				PaymentStatus:        &paymentStatus,
+			}); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update payment status", "details": err.Error()})
+				return
+			}
+			break
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(c); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit transaction", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message":        "order created successfully",
+		"order_id":       orderId,
+		"payment_status": paymentStatus,
+	})
+
+}
+
+// campay payment webhook
+func (h *MessageHandler) handlePaymentWebhook(c *gin.Context) {
+	status := c.Query("status")
+	reference := c.Query("reference")
+	if status == "" || reference == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "status and reference are required"})
+		return
+	}
+	// Update the payment status in the database
+	if _, err := h.querier.Do().UpdatePaymentStatus(c, repo.UpdatePaymentStatusParams{
+		TransactionReference: &reference,
+		PaymentStatus:        &status,
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update payment status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "payment status updated successfully"})
 }
 
 type CreateThreadParams struct {
