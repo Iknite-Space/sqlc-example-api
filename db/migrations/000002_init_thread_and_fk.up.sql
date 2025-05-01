@@ -1,5 +1,5 @@
 -- create thread table
-CREATE TABLE IF NOT EXISTS thread (
+CREATE TABLE thread (
     id SERIAL PRIMARY KEY,
     title VARCHAR(64) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()

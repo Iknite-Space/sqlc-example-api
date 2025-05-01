@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Iknite-Space/sqlc-example-api/api"
+	"github.com/Iknite-Space/sqlc-example-api/campay"
 	"github.com/Iknite-Space/sqlc-example-api/db/repo"
 	"github.com/Iknite-Space/sqlc-example-api/db/store"
 )
@@ -32,6 +33,7 @@ type DBConfig struct {
 type Config struct {
 	ListenPort     uint16 `conf:"env:LISTEN_PORT,required"`
 	MigrationsPath string `conf:"env:MIGRATIONS_PATH,required"`
+	ApiKey         string `conf:"env:AUTH_TOKEN,required,mask"`
 	DB             DBConfig
 }
 
@@ -76,10 +78,12 @@ func run() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
+	campayClient := campay.NewClient("https://demo.campay.net/api", config.ApiKey) //create a new campay client using the base URL and the token
+
 	querier := store.NewStore(db)
 
 	// We create a new http handler using the database querier.
-	handler := api.NewMessageHandler(querier).WireHttpHandler()
+	handler := api.NewMessageHandler(querier, campayClient).WireHttpHandler()
 
 	// And finally we start the HTTP server on the configured port.
 	err = http.ListenAndServe(fmt.Sprintf(":%d", config.ListenPort), handler)

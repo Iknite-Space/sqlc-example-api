@@ -10,7 +10,6 @@ import (
 
 type Querier interface {
 	CheckPaymentStatus(ctx context.Context, transactionReference *string) (*string, error)
-	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (int32, error)
 	CreateOrderItems(ctx context.Context, arg CreateOrderItemsParams) (int32, error)
 	CreatePayment(ctx context.Context, arg CreatePaymentParams) error
@@ -19,15 +18,8 @@ type Querier interface {
 	CreateProductVariation(ctx context.Context, arg CreateProductVariationParams) (int32, error)
 	CreateSingleProduct(ctx context.Context, arg CreateSingleProductParams) (int32, error)
 	CreateStock(ctx context.Context, arg CreateStockParams) (int32, error)
-	CreateThread(ctx context.Context, title string) (Thread, error)
 	CreateVariableProduct(ctx context.Context, arg CreateVariableProductParams) (int32, error)
-	DeleteMessageById(ctx context.Context, id string) (string, error)
-	DeleteMessageByThreadId(ctx context.Context, threadID int32) (int32, error)
-	GetMessageByID(ctx context.Context, id string) (Message, error)
 	GetMessageByThreadPaginated(ctx context.Context, arg GetMessageByThreadPaginatedParams) ([]Message, error)
-	GetMessagesByThread(ctx context.Context, threadID int32) ([]Message, error)
-	GetThreadById(ctx context.Context, id int32) (Thread, error)
-	UpdateMessage(ctx context.Context, arg UpdateMessageParams) error
 	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
 	UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStatusParams) (Payment, error)
 }
