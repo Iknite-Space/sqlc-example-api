@@ -9,9 +9,24 @@ import (
 )
 
 type Querier interface {
-	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
-	GetMessageByID(ctx context.Context, id string) (Message, error)
-	GetMessagesByThread(ctx context.Context, thread string) ([]Message, error)
+	// -- name: CreateMessage :one
+	// INSERT INTO message (thread, sender, content)
+	// VALUES ($1, $2, $3)
+	// RETURNING *;
+	// -- name: GetMessageByID :one
+	// SELECT * FROM message
+	// WHERE id = $1;
+	// -- name: GetMessagesByThread :many
+	// SELECT * FROM message
+	// WHERE thread = $1
+	// ORDER BY created_at DESC;
+	// -- name: CustomerOrders :many
+	// INSERT INTO orders (reference, phone_number, amount, transaction_status, transaction_description)
+	// VALUES ($1, $2, $3, $4, $5)
+	// RETURNING *;
+	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
+	UpadateOrderById(ctx context.Context, arg UpadateOrderByIdParams) (Order, error)
 }
 
 var _ Querier = (*Queries)(nil)
