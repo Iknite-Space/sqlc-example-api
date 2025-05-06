@@ -22,7 +22,6 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1
-
   govulncheck_job:
     name: Run govulncheck
     runs-on: ubuntu-latest
@@ -36,7 +35,6 @@ jobs:
         with:
           go-version-input: 1.22
           go-package: ./...
-
   build:
     name: Build and Test
     runs-on: ubuntu-latest
