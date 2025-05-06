@@ -5,9 +5,9 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   golangci:
@@ -51,4 +51,3 @@ jobs:
         run: go build -v ./...
       - name: Test
         run: go test -v ./...
-

@@ -27,3 +27,7 @@ SET sender = $1, content = $2
 WHERE id = $3
 RETURNING *;
 
+-- name: TransactionMessage :one
+INSERT INTO transacions (reference, external_reference, status_id, amount, currency, operator, code, operator_reference, description_id, external_user, reason, phone_number)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING *;

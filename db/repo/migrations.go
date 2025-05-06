@@ -2,9 +2,11 @@ package repo
 
 import (
 	"errors"
+	"log"
 	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
+	//"github.com/golang-migrate/migrate/v4/database"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Postgres driver
 	_ "github.com/golang-migrate/migrate/v4/source/file"       // File source for migrations
 )
@@ -25,7 +27,14 @@ func Migrate(dbURL string, migrationsPath string) error {
 	if err != nil {
 		return err
 	}
-	defer m.Close()
+	defer func() {
+    result, err := m.Close()
+    if err != nil {
+        // handle error, e.g. log or panic
+        log.Printf("error closing: %v (result: %v)", err, result)
+    }
+}()
+
 
 	// Apply migrations
 	err = m.Up()
@@ -51,7 +60,14 @@ func MigrateDown(dbURL string, migrationsPath string) error {
 	if err != nil {
 		return err
 	}
-	defer m.Close()
+	defer func() {
+    result, err := m.Close()
+    if err != nil {
+        // handle error, e.g. log or panic
+        log.Printf("error closing: %v (result: %v)", err, result)
+    }
+}()
+
 
 	// Apply migrations
 	err = m.Down()
