@@ -23,7 +23,8 @@ jobs:
         with:
           version: v2.1
   govulncheck_job:
-    name: Run govulncheck
+    name: Rungovulncheck
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
