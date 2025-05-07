@@ -24,13 +24,8 @@ jobs:
           version: v2.1
   govulncheck_job:
     name: Rungovulncheck
-    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.23.3
       - name: Run govulncheck
         uses: golang/govulncheck-action@v1.0.4
         with:
