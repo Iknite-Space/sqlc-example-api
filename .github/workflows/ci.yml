@@ -32,4 +32,4 @@ jobs:
       run: go test ./...
 
     - name: Build Binary
-      run: go build -o ./bin/api ./cmd/myapp
+      run: go build -o ./bin/api ./cmd/api/main.go
