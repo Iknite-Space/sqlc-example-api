@@ -11,3 +11,15 @@ WHERE id = $1;
 SELECT * FROM message
 WHERE thread = $1
 ORDER BY created_at DESC;
+
+-- name: DeleteMessage :exec
+DELETE FROM message WHERE id = $1;
+
+-- name: UpdateMessage :exec
+UPDATE message 
+SET content = $2
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteAll :exec
+DELETE FROM message;

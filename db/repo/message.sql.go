@@ -34,6 +34,24 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
+const deleteAll = `-- name: DeleteAll :exec
+DELETE FROM message
+`
+
+func (q *Queries) DeleteAll(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteAll)
+	return err
+}
+
+const deleteMessage = `-- name: DeleteMessage :exec
+DELETE FROM message WHERE id = $1
+`
+
+func (q *Queries) DeleteMessage(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteMessage, id)
+	return err
+}
+
 const getMessageByID = `-- name: GetMessageByID :one
 SELECT id, thread, sender, content, created_at FROM message
 WHERE id = $1
@@ -82,4 +100,21 @@ func (q *Queries) GetMessagesByThread(ctx context.Context, thread string) ([]Mes
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateMessage = `-- name: UpdateMessage :exec
+UPDATE message 
+SET content = $2
+WHERE id = $1
+RETURNING id, thread, sender, content, created_at
+`
+
+type UpdateMessageParams struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
+}
+
+func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) error {
+	_, err := q.db.Exec(ctx, updateMessage, arg.ID, arg.Content)
+	return err
 }
