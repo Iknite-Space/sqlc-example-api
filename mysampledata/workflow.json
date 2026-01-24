@@ -1,0 +1,808 @@
+{
+  "saveworkflow1": {
+    "metadata": {
+      "version": "1.0",
+      "exportDate": "2026-01-22T13:22:47.007Z",
+      "nodeCount": 16,
+      "edgeCount": 3,
+      "portCount": 12,
+      "options": {
+        "includePositions": true,
+        "includeStyling": true,
+        "includePorts": true
+      }
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "label": "Public Internet",
+        "group": "world",
+        "title": "Gateway for all HTTP traffic",
+        "hasPorts": true,
+        "inputCount": 0,
+        "outputCount": 2,
+        "x": -19,
+        "y": 50,
+        "widthConstraint": {
+          "minimum": 170.2890625
+        },
+        "heightConstraint": {
+          "minimum": 66
+        },
+        "size": 42.572265625,
+        "borderWidth": 1,
+        "borderWidthSelected": 2
+      },
+      {
+        "id": 2,
+        "label": "Cloud Load Balancer",
+        "group": "lb",
+        "title": "Entry point for cluster traffic",
+        "hasPorts": true,
+        "inputCount": 1,
+        "outputCount": 3,
+        "x": 52,
+        "y": 16,
+        "widthConstraint": {
+          "minimum": 210.01904296875
+        },
+        "heightConstraint": {
+          "minimum": 94
+        },
+        "size": 52.5047607421875,
+        "borderWidth": 1,
+        "borderWidthSelected": 2
+      },
+      {
+        "id": 3,
+        "label": "Web Platform API",
+        "group": "container",
+        "title": "Critical runtime pod",
+        "hasPorts": true,
+        "inputCount": 2,
+        "outputCount": 2,
+        "x": -22,
+        "y": 49,
+        "widthConstraint": {
+          "minimum": 188.83056640625
+        },
+        "heightConstraint": {
+          "minimum": 66
+        },
+        "size": 47.2076416015625,
+        "borderWidth": 1,
+        "borderWidthSelected": 2
+      },
+      {
+        "id": 4,
+        "label": "Postgres DB",
+        "group": "db",
+        "title": "Encrypted customer data storage",
+        "hasPorts": true,
+        "inputCount": 2,
+        "outputCount": 0,
+        "x": -6,
+        "y": -54,
+        "widthConstraint": {
+          "minimum": 160
+        },
+        "heightConstraint": {
+          "minimum": 66
+        },
+        "size": 40,
+        "borderWidth": 1,
+        "borderWidthSelected": 2
+      },
+      {
+        "id": "1_out_0",
+        "x": -261.85546875,
+        "y": 241,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 1,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "1_out_1",
+        "x": -261.85546875,
+        "y": 271,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 1,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "2_in_0",
+        "x": -169.009521484375,
+        "y": 145,
+        "shape": "dot",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#ef4444"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "input",
+        "parentNode": 2,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "2_out_0",
+        "x": 41.009521484375,
+        "y": 128,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 2,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "2_out_1",
+        "x": 41.009521484375,
+        "y": 152,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 2,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "2_out_2",
+        "x": 41.009521484375,
+        "y": 176,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 2,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "3_in_0",
+        "x": 109.584716796875,
+        "y": -15,
+        "shape": "dot",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#ef4444"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "input",
+        "parentNode": 3,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "3_in_1",
+        "x": 109.584716796875,
+        "y": 15,
+        "shape": "dot",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#ef4444"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "input",
+        "parentNode": 3,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "3_out_0",
+        "x": 298.415283203125,
+        "y": -15,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 3,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "3_out_1",
+        "x": 298.415283203125,
+        "y": 15,
+        "shape": "diamond",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#22c55e"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "output",
+        "parentNode": 3,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "4_in_0",
+        "x": 383,
+        "y": -157,
+        "shape": "dot",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#ef4444"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "input",
+        "parentNode": 4,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      },
+      {
+        "id": "4_in_1",
+        "x": 383,
+        "y": -127,
+        "shape": "dot",
+        "size": 4,
+        "color": {
+          "background": "#ffffff",
+          "border": "#ef4444"
+        },
+        "borderWidth": 2,
+        "physics": false,
+        "isPort": true,
+        "portType": "input",
+        "parentNode": 4,
+        "label": "",
+        "labelVisible": false,
+        "fixed": true,
+        "chosen": false,
+        "font": {
+          "size": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "1_out_0",
+        "to": "2_in_0",
+        "label": "HTTP Traffic",
+        "color": {
+          "color": "#cbd5e1",
+          "highlight": "#ff6d5f"
+        },
+        "width": 2,
+        "dashes": [5, 5],
+        "id": "7b61e50c-dff5-4045-8e87-a741eea4a2f6"
+      },
+      {
+        "from": "2_out_0",
+        "to": "3_in_0",
+        "label": "Load Balanced",
+        "color": {
+          "color": "#cbd5e1",
+          "highlight": "#ff6d5f"
+        },
+        "width": 2,
+        "dashes": [5, 5],
+        "id": "0d5fff36-b86e-4611-a663-409510a8cd95"
+      },
+      {
+        "from": "3_out_0",
+        "to": "4_in_0",
+        "label": "Database Query",
+        "color": {
+          "color": "#cbd5e1",
+          "highlight": "#ff6d5f"
+        },
+        "width": 2,
+        "dashes": [5, 5],
+        "id": "b99fd1b6-642a-48b0-92c2-cb57fe76c6d2"
+      }
+    ],
+    "portRegistry": {
+      "1": {
+        "ports": [
+          {
+            "id": "1_out_0",
+            "offsetX": 85.14453125,
+            "offsetY": -17,
+            "type": "output"
+          },
+          {
+            "id": "1_out_1",
+            "offsetX": 85.14453125,
+            "offsetY": 13,
+            "type": "output"
+          }
+        ],
+        "boundaries": {
+          "width": 170.2890625,
+          "height": 64,
+          "leftEdge": -85.14453125,
+          "rightEdge": 85.14453125,
+          "topEdge": -32,
+          "bottomEdge": 32
+        }
+      },
+      "2": {
+        "ports": [
+          {
+            "id": "2_in_0",
+            "offsetX": -105.009521484375,
+            "offsetY": 0,
+            "type": "input"
+          },
+          {
+            "id": "2_out_0",
+            "offsetX": 105.009521484375,
+            "offsetY": -17,
+            "type": "output"
+          },
+          {
+            "id": "2_out_1",
+            "offsetX": 105.009521484375,
+            "offsetY": 7,
+            "type": "output"
+          },
+          {
+            "id": "2_out_2",
+            "offsetX": 105.009521484375,
+            "offsetY": 31,
+            "type": "output"
+          }
+        ],
+        "boundaries": {
+          "width": 210.01904296875,
+          "height": 64,
+          "leftEdge": -105.009521484375,
+          "rightEdge": 105.009521484375,
+          "topEdge": -32,
+          "bottomEdge": 32
+        }
+      },
+      "3": {
+        "ports": [
+          {
+            "id": "3_in_0",
+            "offsetX": -94.415283203125,
+            "offsetY": -17,
+            "type": "input"
+          },
+          {
+            "id": "3_in_1",
+            "offsetX": -94.415283203125,
+            "offsetY": 13,
+            "type": "input"
+          },
+          {
+            "id": "3_out_0",
+            "offsetX": 94.415283203125,
+            "offsetY": -17,
+            "type": "output"
+          },
+          {
+            "id": "3_out_1",
+            "offsetX": 94.415283203125,
+            "offsetY": 13,
+            "type": "output"
+          }
+        ],
+        "boundaries": {
+          "width": 188.83056640625,
+          "height": 64,
+          "leftEdge": -94.415283203125,
+          "rightEdge": 94.415283203125,
+          "topEdge": -32,
+          "bottomEdge": 32
+        }
+      },
+      "4": {
+        "ports": [
+          {
+            "id": "4_in_0",
+            "offsetX": -80,
+            "offsetY": -17,
+            "type": "input"
+          },
+          {
+            "id": "4_in_1",
+            "offsetX": -80,
+            "offsetY": 13,
+            "type": "input"
+          }
+        ],
+        "boundaries": {
+          "width": 160,
+          "height": 64,
+          "leftEdge": -80,
+          "rightEdge": 80,
+          "topEdge": -32,
+          "bottomEdge": 32
+        }
+      }
+    },
+    "configuration": {
+      "editorConfig": {
+        "visualSettings": {
+          "showPortLabels": false,
+          "showPortTooltips": true,
+          "portLabelFontSize": 10,
+          "portLabelColor": "#64748b",
+          "connectionStyle": "dashed",
+          "connectionWidth": 2,
+          "connectionColors": {
+            "default": "#cbd5e1",
+            "hover": "#3b82f6",
+            "highlight": "#ff6d5f"
+          }
+        },
+        "networkOptions": {
+          "physics": false,
+          "interaction": {
+            "hover": true,
+            "multiselect": true,
+            "navigationButtons": false,
+            "zoomView": true,
+            "dragNodes": true
+          },
+          "edges": {
+            "smooth": {
+              "enabled": true,
+              "type": "cubicBezier",
+              "forceDirection": "horizontal",
+              "roundness": 0.6
+            },
+            "arrows": {
+              "to": {
+                "enabled": true,
+                "scaleFactor": 0.4,
+                "type": "arrow"
+              }
+            }
+          }
+        },
+        "inspectorConfig": {
+          "portFields": [
+            {
+              "id": "name",
+              "label": "Port Name",
+              "type": "text",
+              "placeholder": "e.g. Data Input",
+              "required": false
+            },
+            {
+              "id": "shape",
+              "label": "Port Shape",
+              "type": "select",
+              "options": "portShapes",
+              "required": true
+            },
+            {
+              "id": "size",
+              "label": "Port Size",
+              "type": "range",
+              "min": 2,
+              "max": 15,
+              "default": 4,
+              "showValue": true,
+              "unit": "px"
+            },
+            {
+              "id": "backgroundColor",
+              "label": "Port Color",
+              "type": "color",
+              "allowTransparent": true,
+              "presets": "portColorPresets"
+            },
+            {
+              "id": "borderColor",
+              "label": "Border Color",
+              "type": "color",
+              "allowTransparent": false,
+              "presets": "portColorPresets"
+            },
+            {
+              "id": "labelVisible",
+              "label": "Show Label",
+              "type": "checkbox",
+              "default": false
+            }
+          ]
+        },
+        "toolbarConfig": {
+          "showPortLabelsToggle": {
+            "enabled": true,
+            "position": "top-right",
+            "icon": "tag",
+            "tooltip": "Toggle Port Labels"
+          }
+        }
+      },
+      "portTemplates": {
+        "defaultPortConfig": {
+          "input": {
+            "shape": "dot",
+            "size": 4,
+            "color": {
+              "background": "#ffffff",
+              "border": "#ef4444"
+            },
+            "borderWidth": 2,
+            "labelVisible": false
+          },
+          "output": {
+            "shape": "diamond",
+            "size": 4,
+            "color": {
+              "background": "#ffffff",
+              "border": "#22c55e"
+            },
+            "borderWidth": 2,
+            "labelVisible": false
+          }
+        },
+        "portShapes": [
+          {
+            "id": "dot",
+            "label": "Circle",
+            "category": "basic"
+          },
+          {
+            "id": "diamond",
+            "label": "Diamond",
+            "category": "basic"
+          },
+          {
+            "id": "square",
+            "label": "Square",
+            "category": "basic"
+          },
+          {
+            "id": "triangle",
+            "label": "Triangle",
+            "category": "basic"
+          },
+          {
+            "id": "roundedRect",
+            "label": "Rounded Rectangle",
+            "category": "geometric"
+          },
+          {
+            "id": "rect",
+            "label": "Rectangle",
+            "category": "geometric"
+          },
+          {
+            "id": "circle",
+            "label": "Large Circle",
+            "category": "geometric"
+          },
+          {
+            "id": "rhombus",
+            "label": "Rhombus",
+            "category": "geometric"
+          },
+          {
+            "id": "hexagon",
+            "label": "Hexagon",
+            "category": "geometric"
+          },
+          {
+            "id": "semicircle",
+            "label": "Semicircle",
+            "category": "geometric"
+          },
+          {
+            "id": "puzzlePiece",
+            "label": "Puzzle Piece",
+            "category": "special"
+          },
+          {
+            "id": "andGate",
+            "label": "AND Gate",
+            "category": "logic"
+          },
+          {
+            "id": "orGate",
+            "label": "OR Gate",
+            "category": "logic"
+          },
+          {
+            "id": "notGate",
+            "label": "NOT Gate",
+            "category": "logic"
+          }
+        ],
+        "portSizeOptions": {
+          "min": 2,
+          "max": 15,
+          "default": 4,
+          "step": 1
+        },
+        "portColorPresets": [
+          {
+            "name": "Input Red",
+            "background": "#ffffff",
+            "border": "#ef4444"
+          },
+          {
+            "name": "Output Green",
+            "background": "#ffffff",
+            "border": "#22c55e"
+          },
+          {
+            "name": "Data Blue",
+            "background": "#ffffff",
+            "border": "#3b82f6"
+          },
+          {
+            "name": "Control Purple",
+            "background": "#ffffff",
+            "border": "#8b5cf6"
+          },
+          {
+            "name": "Error Orange",
+            "background": "#ffffff",
+            "border": "#f97316"
+          },
+          {
+            "name": "Success Emerald",
+            "background": "#ffffff",
+            "border": "#10b981"
+          },
+          {
+            "name": "Warning Yellow",
+            "background": "#ffffff",
+            "border": "#eab308"
+          },
+          {
+            "name": "Info Cyan",
+            "background": "#ffffff",
+            "border": "#06b6d4"
+          }
+        ]
+      },
+      "groupStyles": {
+        "world": {
+          "color": "#2ea043",
+          "icon": "globe",
+          "label": "Internet"
+        },
+        "repo": {
+          "color": "#8957e5",
+          "icon": "github",
+          "label": "Repository"
+        },
+        "container": {
+          "color": "#d29922",
+          "icon": "box",
+          "label": "Service"
+        },
+        "secret": {
+          "color": "#cf222e",
+          "icon": "key",
+          "label": "Secret"
+        },
+        "db": {
+          "color": "#0969da",
+          "icon": "database",
+          "label": "Database"
+        },
+        "lb": {
+          "color": "#6e7681",
+          "icon": "layers",
+          "label": "Load Balancer"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+    "visualSettings": {
+        "showPortLabels": false,
+        "showPortTooltips": true,
+        "portLabelFontSize": 10,
+        "portLabelColor": "#64748b",
+        "connectionStyle": "dashed",
+        "connectionWidth": 2,
+        "connectionColors": {
+            "default": "#cbd5e1",
+            "hover": "#3b82f6",
+            "highlight": "#ff6d5f"
+        }
+    },
+    "networkOptions": {
+        "physics": false,
+        "interaction": {
+            "hover": true,
+            "multiselect": true,
+            "navigationButtons": false,
+            "zoomView": true,
+            "dragNodes": true
+        },
+        "edges": {
+            "smooth": {
+                "enabled": true,
+                "type": "cubicBezier",
+                "forceDirection": "horizontal",
+                "roundness": 0.6
+            },
+            "arrows": {
+                "to": {
+                    "enabled": true,
+                    "scaleFactor": 0.4,
+                    "type": "arrow"
+                }
+            }
+        }
+    },
+    "inspectorConfig": {
+        "portFields": [
+            {
+                "id": "name",
+                "label": "Port Name",
+                "type": "text",
+                "placeholder": "e.g. Data Input",
+                "required": false
+            },
+            {
+                "id": "shape",
+                "label": "Port Shape",
+                "type": "select",
+                "options": "portShapes",
+                "required": true
+            },
+            {
+                "id": "size",
+                "label": "Port Size",
+                "type": "range",
+                "min": 2,
+                "max": 15,
+                "default": 4,
+                "showValue": true,
+                "unit": "px"
+            },
+            {
+                "id": "backgroundColor",
+                "label": "Port Color",
+                "type": "color",
+                "allowTransparent": true,
+                "presets": "portColorPresets"
+            },
+            {
+                "id": "borderColor",
+                "label": "Border Color",
+                "type": "color",
+                "allowTransparent": false,
+                "presets": "portColorPresets"
+            },
+            {
+                "id": "labelVisible",
+                "label": "Show Label",
+                "type": "checkbox",
+                "default": false
+            }
+        ]
+    },
+    "toolbarConfig": {
+        "showPortLabelsToggle": {
+            "enabled": true,
+            "position": "top-right",
+            "icon": "tag",
+            "tooltip": "Toggle Port Labels"
+        }
+    }
+}

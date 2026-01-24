@@ -78,7 +78,7 @@ func run() error {
 	querier := repo.New(db)
 
 	// We create a new http handler using the database querier.
-	handler := api.NewMessageHandler(querier).WireHttpHandler()
+	handler := api.NewAPIHandler(querier).WireHttpHandler()
 
 	// And finally we start the HTTP server on the configured port.
 	err = http.ListenAndServe(fmt.Sprintf(":%d", config.ListenPort), handler)

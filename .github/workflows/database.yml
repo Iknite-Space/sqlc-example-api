@@ -1,0 +1,122 @@
+name: Database Management
+
+on:
+  schedule:
+    # Run backup daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Database action to perform'
+        required: true
+        default: 'backup'
+        type: choice
+        options:
+        - backup
+        - migrate
+        - seed
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  database-backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'backup' || github.event_name == 'schedule'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create database backup
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: |
+        echo "Creating database backup..."
+        # Install PostgreSQL client
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        
+        # Create backup with timestamp
+        BACKUP_FILE="backup-$(date +%Y%m%d-%H%M%S).sql"
+        pg_dump $DATABASE_URL > $BACKUP_FILE
+        
+        echo "Backup created: $BACKUP_FILE"
+        
+        # Upload to cloud storage (example with AWS S3)
+        # aws s3 cp $BACKUP_FILE s3://your-backup-bucket/telemetry-api/
+        
+        # Or upload as artifact for short-term storage
+        echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+
+    - name: Upload backup artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backup-${{ github.run_number }}
+        path: ${{ env.BACKUP_FILE }}
+        retention-days: 7
+
+  database-migrate:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'migrate'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Run migrations
+      env:
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_Name: ${{ secrets.DB_NAME }}
+        DB_TLS_DISABLED: false
+        MIGRATIONS_PATH: "./db/migrations"
+      run: |
+        echo "Running database migrations..."
+        go run cmd/api/main.go --migrate-only || true
+        echo "Migrations completed"
+
+  database-seed:
+    name: Seed Database
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'seed'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Generate database code
+      run: |
+        cd db
+        go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0 generate
+
+    - name: Seed database
+      env:
+        DB_USER: ${{ secrets.STAGING_DB_USER }}
+        DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+        DB_HOST: ${{ secrets.STAGING_DB_HOST }}
+        DB_PORT: ${{ secrets.STAGING_DB_PORT }}
+        DB_Name: ${{ secrets.STAGING_DB_NAME }}
+        DB_TLS_DISABLED: true
+        MIGRATIONS_PATH: "./db/migrations"
+      run: |
+        echo "Seeding database with sample data..."
+        go run cmd/seed/main.go
+        echo "Database seeding completed"

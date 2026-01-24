@@ -1,0 +1,92 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_run:
+    workflows: ["Test & Build", "Security Scan"]
+    types:
+      - completed
+    branches: [ main ]
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event.workflow_run.conclusion == 'success'
+    environment: staging
+    
+    steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: telemetry-api-${{ github.sha }}
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to staging server
+      run: |
+        echo "Deploying to staging environment..."
+        # Example staging deployment:
+        # scp telemetry-api staging-user@staging-server:/opt/telemetry-api/
+        # ssh staging-user@staging-server 'systemctl restart telemetry-api'
+        echo "Staging deployment completed"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event.workflow_run.conclusion == 'success'
+    environment: production
+    
+    steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: telemetry-api-${{ github.sha }}
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        body: |
+          Automated release from commit ${{ github.sha }}
+          
+          Changes in this release:
+          ${{ github.event.head_commit.message }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./telemetry-api
+        asset_name: telemetry-api-linux-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Deploy to production server
+      run: |
+        echo "Deploying to production environment..."
+        # Example production deployment:
+        # scp telemetry-api prod-user@prod-server:/opt/telemetry-api/
+        # ssh prod-user@prod-server 'systemctl restart telemetry-api'
+        echo "Production deployment completed"
+
+    - name: Notify deployment
+      run: |
+        echo "Sending deployment notification..."
+        # Example: Send Slack notification, email, etc.
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"Telemetry API v${{ github.run_number }} deployed to production"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}

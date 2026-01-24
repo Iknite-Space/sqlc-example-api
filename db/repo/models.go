@@ -8,10 +8,130 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Message struct {
-	ID        string           `json:"id"`
-	Thread    string           `json:"thread"`
-	Sender    string           `json:"sender"`
-	Content   string           `json:"content"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+type CacheDatum struct {
+	ID            string           `json:"id"`
+	Technology    string           `json:"technology"`
+	CacheType     string           `json:"cache_type"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type DockerContainer struct {
+	ID            string           `json:"id"`
+	Name          string           `json:"name"`
+	Status        string           `json:"status"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type EditorConfig struct {
+	ID         string           `json:"id"`
+	Name       string           `json:"name"`
+	ConfigData []byte           `json:"config_data"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+	UpdatedAt  pgtype.Timestamp `json:"updated_at"`
+}
+
+type GitRepo struct {
+	ID            string           `json:"id"`
+	Name          string           `json:"name"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type LogEntry struct {
+	ID            string           `json:"id"`
+	Level         string           `json:"level"`
+	Message       string           `json:"message"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	Timestamp     pgtype.Timestamp `json:"timestamp"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type PlistDatum struct {
+	ID            string           `json:"id"`
+	Key           string           `json:"key"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type RegistryDatum struct {
+	ID            string           `json:"id"`
+	Subkey        string           `json:"subkey"`
+	ValueName     string           `json:"value_name"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type Secret struct {
+	ID            string           `json:"id"`
+	Description   string           `json:"description"`
+	CoreData      []byte           `json:"core_data"`
+	CustomFields  []byte           `json:"custom_fields"`
+	SchemaVersion *int32           `json:"schema_version"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type TableSchema struct {
+	ID               string           `json:"id"`
+	TableName        string           `json:"table_name"`
+	SchemaVersion    int32            `json:"schema_version"`
+	FieldDefinitions []byte           `json:"field_definitions"`
+	IsActive         *bool            `json:"is_active"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+}
+
+type Workflow struct {
+	ID           string           `json:"id"`
+	Name         string           `json:"name"`
+	Version      *string          `json:"version"`
+	ExportDate   pgtype.Timestamp `json:"export_date"`
+	NodeCount    *int32           `json:"node_count"`
+	EdgeCount    *int32           `json:"edge_count"`
+	PortCount    *int32           `json:"port_count"`
+	WorkflowData []byte           `json:"workflow_data"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+type WorkflowEdge struct {
+	ID         string           `json:"id"`
+	WorkflowID string           `json:"workflow_id"`
+	FromNode   string           `json:"from_node"`
+	ToNode     string           `json:"to_node"`
+	Label      *string          `json:"label"`
+	EdgeData   []byte           `json:"edge_data"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+}
+
+type WorkflowNode struct {
+	ID         string           `json:"id"`
+	WorkflowID string           `json:"workflow_id"`
+	NodeID     string           `json:"node_id"`
+	Label      *string          `json:"label"`
+	GroupType  *string          `json:"group_type"`
+	Title      string           `json:"title"`
+	XPosition  pgtype.Numeric   `json:"x_position"`
+	YPosition  pgtype.Numeric   `json:"y_position"`
+	NodeData   []byte           `json:"node_data"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
 }

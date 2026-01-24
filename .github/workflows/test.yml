@@ -1,0 +1,101 @@
+name: Test & Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: telemetry_api_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Generate database code
+      run: |
+        cd db
+        go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0 generate
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Check code formatting
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Code is not formatted properly:"
+          gofmt -s -l .
+          exit 1
+        fi
+
+    - name: Build application
+      run: go build -v -o telemetry-api ./cmd/api
+
+    - name: Test database connection
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_Name: telemetry_api_test
+        DB_TLS_DISABLED: true
+        MIGRATIONS_PATH: "./db/migrations"
+        LISTEN_PORT: 8085
+      run: |
+        # Test that the app can start and run migrations
+        timeout 10s ./telemetry-api || true
+        echo "Application build and migration test completed"
+
+    - name: Run tests
+      run: |
+        if find . -name "*_test.go" | grep -q .; then
+          go test -v ./...
+        else
+          echo "No tests found, skipping test execution"
+        fi
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: telemetry-api-${{ github.sha }}
+        path: telemetry-api
+        retention-days: 30

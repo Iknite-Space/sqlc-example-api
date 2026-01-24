@@ -16,9 +16,12 @@ func Migrate(dbURL string, migrationsPath string) error {
 		return err
 	}
 
-	// Create a new migration instance with the absolute path
+	// Convert Windows path to file URL format
+	fileURL := "file://" + filepath.ToSlash(absPath)
+
+	// Create a new migration instance with the file URL
 	m, err := migrate.New(
-		"file://"+absPath,
+		fileURL,
 		dbURL,
 	)
 
@@ -43,9 +46,12 @@ func MigrateDown(dbURL string, migrationsPath string) error {
 		return err
 	}
 
-	// Create a new migration instance with the absolute path
+	// Convert Windows path to file URL format
+	fileURL := "file://" + filepath.ToSlash(absPath)
+
+	// Create a new migration instance with the file URL
 	m, err := migrate.New(
-		"file://"+absPath,
+		fileURL,
 		dbURL,
 	)
 	if err != nil {

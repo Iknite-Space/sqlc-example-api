@@ -1,0 +1,195 @@
+{
+  "repos": ["repo1", "repo2", "my-project", "old-repo"],
+  "dockerContainers": [
+    {
+      "name": "web-app",
+      "status": "running",
+      "lastRun": "2026-01-10",
+      "origin": "CI branch old-feature",
+      "disk": "500MB",
+      "ram": "256MB",
+      "unused": true,
+      "highMem": false,
+      "root": false,
+      "exposedPorts": true,
+      "unlimitedMem": false
+    },
+    {
+      "name": "db",
+      "status": "stopped",
+      "lastRun": "2026-01-05",
+      "origin": "main",
+      "disk": "1GB",
+      "ram": "512MB",
+      "unused": true,
+      "highMem": true,
+      "root": true,
+      "exposedPorts": false,
+      "unlimitedMem": true
+    },
+    {
+      "name": "cache",
+      "status": "running",
+      "lastRun": "2026-01-14",
+      "origin": "dev",
+      "disk": "200MB",
+      "ram": "128MB",
+      "unused": false,
+      "highMem": false,
+      "root": false,
+      "exposedPorts": false,
+      "unlimitedMem": false
+    },
+    {
+      "name": "api",
+      "status": "running",
+      "lastRun": "2026-01-12",
+      "origin": "feature-branch",
+      "disk": "300MB",
+      "ram": "200MB",
+      "unused": false,
+      "highMem": false,
+      "root": false,
+      "exposedPorts": false,
+      "unlimitedMem": false
+    }
+  ],
+  "cacheData": {
+    "Node.js": {
+      "node_modules": "2GB",
+      "cache": "500MB"
+    },
+    "Python": {
+      "pycache": "100MB",
+      "pip": "300MB",
+      "virtualenvs": "1GB"
+    },
+    "Java": {
+      "maven": "800MB",
+      "gradle": "400MB"
+    },
+    "Rust": {
+      "target": "1.5GB",
+      "cargo": "200MB"
+    },
+    "Go": {
+      "module": "600MB"
+    },
+    "Flutter/Android/iOS": {
+      "build": "3GB",
+      "emulator": "2GB"
+    }
+  },
+  "gitRepos": [
+    {
+      "name": "repo1",
+      "untouched": "3 months",
+      "duplicate": false,
+      "clonedNeverBuilt": true
+    },
+    {
+      "name": "repo2",
+      "untouched": "1 week",
+      "duplicate": true,
+      "clonedNeverBuilt": false
+    },
+    {
+      "name": "my-project",
+      "untouched": "2 months",
+      "duplicate": false,
+      "clonedNeverBuilt": false
+    },
+    {
+      "name": "old-repo",
+      "untouched": "6 months",
+      "duplicate": true,
+      "clonedNeverBuilt": true
+    }
+  ],
+  "secrets": [
+    ".env in /home/user/project",
+    "API_KEY in code.py",
+    "old_ssh_key in ~/.ssh",
+    "AWS_ACCESS_KEY in config.json"
+  ],
+  "logEntries": [
+    "ERROR: Connection failed at 10:00",
+    "WARN: Disk space low at 11:00",
+    "ERROR: Timeout error at 12:00",
+    "INFO: Process started at 13:00",
+    "ERROR: Authentication failed at 14:00",
+    "WARN: Memory usage high at 15:00"
+  ],
+  "anomalyData": {
+    "commits": [10, 15, 8, 20, 5, 25, 30, 12, 18, 22, 7, 28, 35, 14],
+    "shutdowns": [1, 0, 2, 0, 3, 1, 0, 4, 0, 2, 1, 0, 5, 0],
+    "charging": [8, 10, 6, 12, 9, 7, 11, 5, 13, 8, 10, 6, 12, 9],
+    "admin": [0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1],
+    "kernel": [5, 3, 7, 4, 6, 8, 2, 9, 4, 6, 7, 3, 8, 5],
+    "ports": [22, 80, 443, 22, 8080, 22, 3306, 22, 80, 443, 22, 8080, 22, 3306],
+    "disk": [50, 55, 60, 70, 65, 75, 80, 85, 78, 82, 88, 90, 85, 92],
+    "memory": [4, 5, 6, 7, 5, 8, 9, 6, 7, 8, 9, 7, 10, 8]
+  },
+  "snapshots": [
+    "snapshot-2026-01-01",
+    "snapshot-2026-01-08",
+    "snapshot-2026-01-15"
+  ],
+  "scheduledTasks": [
+    "Weekly cleanup on Sunday",
+    "Monthly cleanup on 1st",
+    "Before shutdown cleanup"
+  ],
+  "cloudBindings": [
+    "Google Drive: incremental, folders: Documents, Projects",
+    "Dropbox: full backup, folders: Desktop"
+  ],
+  "registryData": [
+    {
+      "subkey": "Software\\MyApp",
+      "value": "Version",
+      "data": "1.0",
+      "type": "REG_SZ"
+    },
+    {
+      "subkey": "Software\\MyApp",
+      "value": "InstallPath",
+      "data": "C:\\Program Files\\MyApp",
+      "type": "REG_SZ"
+    },
+    {
+      "subkey": "Software\\MyApp\\Settings",
+      "value": "AutoStart",
+      "data": "1",
+      "type": "REG_DWORD"
+    },
+    {
+      "subkey": "Software\\MyApp\\Settings",
+      "value": "Timeout",
+      "data": "30",
+      "type": "REG_DWORD"
+    }
+  ],
+  "plistData": [
+    {
+      "key": "CFBundleVersion",
+      "value": "1.0",
+      "type": "string"
+    },
+    {
+      "key": "CFBundleExecutable",
+      "value": "MyApp",
+      "type": "string"
+    },
+    {
+      "key": "LSUIElement",
+      "value": "true",
+      "type": "boolean"
+    },
+    {
+      "key": "NSAppTransportSecurity",
+      "value": "{...}",
+      "type": "dict"
+    }
+  ]
+}
